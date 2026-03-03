@@ -21,16 +21,20 @@ apiClient.interceptors.request.use(
 
 // Variables for refresh token queue management
 let isRefreshing = false;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let failedQueue: any[] = [];
+interface QueuedRequest {
+    resolve: (token: string) => void;
+    reject: (error?: unknown) => void;
+}
+let failedQueue: QueuedRequest[] = [];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: Error | null, token: string | null = null) => {
     failedQueue.forEach((prom) => {
         if (error) {
             prom.reject(error);
-        } else {
+        } else if (token) {
             prom.resolve(token);
+        } else {
+            prom.reject(new Error('No token available'));
         }
     });
     failedQueue = [];
@@ -73,7 +77,8 @@ apiClient.interceptors.response.use(
 
                 return apiClient(originalRequest);
             } catch (err) {
-                processQueue(err, null);
+                const error = err instanceof Error ? err : new Error('Token refresh failed');
+                processQueue(error, null);
                 useAuthStore.getState().logout();
                 return Promise.reject(err);
             } finally {

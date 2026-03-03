@@ -16,19 +16,22 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         const publicPaths = ['/auth/login', '/auth/register', '/'];
         const isPublicPath = publicPaths.includes(pathname);
 
-        // Give it a small delay to read from store if hydrated
         const checkAuth = () => {
             const validToken = isValidToken(accessToken);
 
             if (!isPublicPath && (!isAuthenticated || !validToken)) {
                 router.replace('/auth/login');
-            } else if (isPublicPath && isAuthenticated && validToken) {
+                return; // Don't set isReady when redirecting
+            }
+            
+            if (isPublicPath && isAuthenticated && validToken) {
                 if (pathname === '/auth/login' || pathname === '/auth/register') {
                     router.replace('/subjects');
-                    return;
+                    return; // Don't set isReady when redirecting
                 }
             }
-            setIsReady(true);
+            
+            setIsReady(true); // Only set ready when not redirecting
         };
 
         checkAuth();
