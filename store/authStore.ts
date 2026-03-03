@@ -12,12 +12,10 @@ interface AuthState {
     accessToken: string | null;
     isAuthenticated: boolean;
     loading: boolean;
-    isHydrated: boolean;
     setToken: (token: string) => void;
     setUser: (user: User) => void;
     login: (token: string, user: User) => void;
     logout: () => void;
-    setHydrated: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -27,17 +25,10 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             isAuthenticated: false,
             loading: false,
-            isHydrated: false,
             setToken: (token) => set({ accessToken: token, isAuthenticated: !!token }),
             setUser: (user) => set({ user }),
-            login: (token, user) => {
-                set({ accessToken: token, user, isAuthenticated: true, isHydrated: true });
-            },
-            logout: () => {
-                set({ accessToken: null, user: null, isAuthenticated: false });
-                // Don't reset isHydrated on logout - store is still hydrated
-            },
-            setHydrated: () => set({ isHydrated: true }),
+            login: (token, user) => set({ accessToken: token, user, isAuthenticated: true }),
+            logout: () => set({ accessToken: null, user: null, isAuthenticated: false }),
         }),
         {
             name: 'auth-storage', // localStorage key
@@ -66,20 +57,6 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: state.isAuthenticated,
                 user: state.user,
             }),
-            onRehydrateStorage: () => (state, error) => {
-                // Always mark as hydrated, even if there was an error
-                // This prevents infinite loading states
-                if (state) {
-                    state.setHydrated();
-                } else if (error) {
-                    // If hydration failed, still allow app to function
-                    console.warn('Auth hydration failed:', error);
-                    // Create a temporary state to mark as hydrated
-                    setTimeout(() => {
-                        useAuthStore.getState().setHydrated();
-                    }, 0);
-                }
-            },
         }
     )
 );

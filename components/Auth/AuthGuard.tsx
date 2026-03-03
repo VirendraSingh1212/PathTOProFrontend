@@ -1,55 +1,32 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
-import { isValidToken } from '@/lib/auth';
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/authStore";
 
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const pathname = usePathname();
-    const { isAuthenticated, accessToken, isHydrated } = useAuthStore();
-    const [isReady, setIsReady] = useState(false);
+/**
+ * AuthGuard protects routes by redirecting unauthenticated users.
+ * 
+ * Pure and deterministic - only checks isAuthenticated state.
+ * Hydration timing is handled separately by AuthInitializer.
+ */
+export default function AuthGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-    useEffect(() => {
-        // Wait for auth store to hydrate before checking auth
-        if (!isHydrated) {
-            return;
-        }
-
-        // List of routes that don't require authentication
-        const publicPaths = ['/auth/login', '/auth/register', '/'];
-        const isPublicPath = publicPaths.includes(pathname);
-
-        const checkAuth = () => {
-            const validToken = isValidToken(accessToken);
-
-            if (!isPublicPath && (!isAuthenticated || !validToken)) {
-                router.replace('/auth/login');
-                return; // Don't set isReady when redirecting
-            }
-            
-            if (isPublicPath && isAuthenticated && validToken) {
-                if (pathname === '/auth/login' || pathname === '/auth/register') {
-                    router.replace('/subjects');
-                    return; // Don't set isReady when redirecting
-                }
-            }
-            
-            setIsReady(true); // Only set ready when not redirecting
-        };
-
-        checkAuth();
-    }, [isHydrated, isAuthenticated, accessToken, pathname, router]);
-
-    // Show loading during initial hydration
-    if (!isHydrated || !isReady) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50/50">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.replace("/auth/login");
     }
+  }, [isAuthenticated, router]);
 
-    return <>{children}</>;
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  return <>{children}</>;
 }

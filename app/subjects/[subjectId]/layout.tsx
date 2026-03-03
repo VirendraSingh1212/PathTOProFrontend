@@ -6,6 +6,8 @@ import { useSidebarStore } from '@/store/sidebarStore';
 import apiClient from '@/lib/apiClient';
 import SubjectSidebar from '@/components/Sidebar/SubjectSidebar';
 import { Spinner } from '@/components/common/Spinner';
+import AuthGuard from '@/components/Auth/AuthGuard';
+import AuthInitializer from '@/components/AuthInitializer';
 
 export default function SubjectLayout({
     children,
@@ -47,21 +49,25 @@ export default function SubjectLayout({
     }, [params.subjectId, setSubjectTree, setLoading, setError, initializeCompletedVideos]);
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-            <aside className="w-80 flex-shrink-0 border-r bg-white h-full overflow-y-auto">
-                {loading ? (
-                    <div className="flex justify-center items-center h-full">
-                        <Spinner />
-                    </div>
-                ) : error ? (
-                    <div className="p-4 text-red-500">{error}</div>
-                ) : (
-                    <SubjectSidebar subjectId={params.subjectId} />
-                )}
-            </aside>
-            <main className="flex-1 overflow-y-auto bg-gray-50 relative">
-                {children}
-            </main>
-        </div>
+        <AuthInitializer>
+            <AuthGuard>
+                <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+                    <aside className="w-80 flex-shrink-0 border-r bg-white h-full overflow-y-auto">
+                        {loading ? (
+                            <div className="flex justify-center items-center h-full">
+                                <Spinner />
+                            </div>
+                        ) : error ? (
+                            <div className="p-4 text-red-500">{error}</div>
+                        ) : (
+                            <SubjectSidebar subjectId={params.subjectId} />
+                        )}
+                    </aside>
+                    <main className="flex-1 overflow-y-auto bg-gray-50 relative">
+                        {children}
+                    </main>
+                </div>
+            </AuthGuard>
+        </AuthInitializer>
     );
 }
