@@ -1,6 +1,6 @@
 'use client';
 
-import { useSidebarStore } from '@/store/sidebarStore';
+import { useSidebarStore, type Section } from '@/store/sidebarStore';
 import SectionItem from './SectionItem';
 
 export default function SubjectSidebar({ subjectId }: { subjectId: string }) {
@@ -9,10 +9,10 @@ export default function SubjectSidebar({ subjectId }: { subjectId: string }) {
     // Ensure subjectTree is an iterable array
     const safeSections = Array.isArray(subjectTree)
         ? subjectTree
-        : (Array.isArray((subjectTree as any)?.sections) ? (subjectTree as any).sections : []);
+        : (Array.isArray((subjectTree as { sections?: Section[] })?.sections) ? (subjectTree as { sections?: Section[] }).sections ?? [] : []);
 
     // Sort sections by order_index
-    const sortedSections = [...safeSections].sort((a: any, b: any) => a.order_index - b.order_index);
+    const sortedSections = [...safeSections].sort((a, b) => a.order_index - b.order_index);
 
     return (
         <div className="flex flex-col h-full bg-white">
@@ -23,7 +23,7 @@ export default function SubjectSidebar({ subjectId }: { subjectId: string }) {
                 {sortedSections.length === 0 ? (
                     <div className="p-8 text-sm text-gray-500 text-center">No content available.</div>
                 ) : (
-                    Array.isArray(sortedSections) && sortedSections.map((section: any) => (
+                    Array.isArray(sortedSections) && sortedSections.map((section) => (
                         <SectionItem key={section?.id} section={section} subjectId={subjectId} />
                     ))
                 )}

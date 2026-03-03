@@ -17,7 +17,7 @@ interface ProfileStats {
         subject_id: string;
         video_id: string;
     };
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export default function ProfilePage() {
@@ -33,8 +33,8 @@ export default function ProfilePage() {
                 // Attempt to fetch profile stats
                 const res = await apiClient.get('/profile/stats');
                 setStats(Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []));
-            } catch (err: any) {
-                console.warn("Profile stats not available:", err?.response?.status);
+            } catch (err: unknown) {
+                console.warn("Profile stats not available:", (err as { response?: { status?: number } })?.response?.status);
                 setStats([]);
             } finally {
                 setLoading(false);
