@@ -12,10 +12,12 @@ interface AuthState {
     accessToken: string | null;
     isAuthenticated: boolean;
     loading: boolean;
+    isHydrated: boolean;
     setToken: (token: string) => void;
     setUser: (user: User) => void;
     login: (token: string, user: User) => void;
     logout: () => void;
+    setHydrated: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,10 +27,12 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             isAuthenticated: false,
             loading: false,
+            isHydrated: false,
             setToken: (token) => set({ accessToken: token, isAuthenticated: !!token }),
             setUser: (user) => set({ user }),
             login: (token, user) => set({ accessToken: token, user, isAuthenticated: true }),
             logout: () => set({ accessToken: null, user: null, isAuthenticated: false }),
+            setHydrated: () => set({ isHydrated: true }),
         }),
         {
             name: 'auth-storage', // localStorage key
@@ -57,6 +61,12 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: state.isAuthenticated,
                 user: state.user,
             }),
+            onRehydrateStorage: () => (state, error) => {
+                if (!error && state) {
+                    // Mark hydration complete after restoring from localStorage
+                    state.setHydrated();
+                }
+            },
         }
     )
 );
