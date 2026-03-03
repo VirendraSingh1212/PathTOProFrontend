@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Image from 'next/image';
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -75,10 +76,12 @@ export default function SubjectsPage() {
                             <Card className="h-full hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white/70 backdrop-blur-md hover:translate-y-[-2px]">
                                 {subject.thumbnail_url && (
                                     <div className="w-full h-40 bg-gray-200 overflow-hidden">
-                                        <img
+                                        <Image
                                             src={subject.thumbnail_url}
                                             alt={subject.title}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            className="object-cover"
+                                            unoptimized
                                         />
                                     </div>
                                 )}
