@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -44,8 +45,12 @@ export default function RegisterPage() {
                 password: data.password
             });
             router.push('/auth/login?registered=true');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to register');
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.message || 'Failed to register');
+            } else {
+                setError('An unexpected error occurred');
+            }
         }
     };
 

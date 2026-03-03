@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useVideoStore } from '@/store/videoStore';
 
-export default function VideoProgressBar({ videoId }: { videoId: string }) {
+export default function VideoProgressBar() {
     const { currentTime, duration } = useVideoStore();
     const [progress, setProgress] = useState(0);
 

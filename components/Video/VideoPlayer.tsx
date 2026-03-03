@@ -14,6 +14,7 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({ videoId, youtubeId, startPosition, onCompleted }: VideoPlayerProps) {
     const { updateProgress, setPlaying } = useVideoStore();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const playerRef = useRef<any>(null);
     const progressInterval = useRef<NodeJS.Timeout | null>(null);
     const [isReady, setIsReady] = useState(false);

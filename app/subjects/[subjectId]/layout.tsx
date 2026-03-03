@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import axios from 'axios';
 import { useSidebarStore } from '@/store/sidebarStore';
 import apiClient from '@/lib/apiClient';
 import SubjectSidebar from '@/components/Sidebar/SubjectSidebar';
@@ -31,8 +32,12 @@ export default function SubjectLayout({
                 } catch (e) {
                     console.error("Progress not loaded", e);
                 }
-            } catch (err: any) {
-                setError(err.response?.data?.message || 'Failed to load subject content');
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    setError(err.response?.data?.message || 'Failed to load subject content');
+                } else {
+                    setError('An unexpected error occurred');
+                }
             } finally {
                 setLoading(false);
             }

@@ -9,11 +9,21 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/common/Spinner';
 import { UserCircle, LogOut, BookOpen, Clock } from 'lucide-react';
 
+interface ProfileStats {
+    completed_videos: number;
+    total_videos: number;
+    last_watched?: {
+        title: string;
+        subject_id: string;
+        video_id: string;
+    };
+}
+
 export default function ProfilePage() {
     const { user, logout } = useAuthStore();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<ProfileStats | null>(null);
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -22,7 +32,7 @@ export default function ProfilePage() {
                 // Attempt to fetch profile stats
                 const res = await apiClient.get('/profile/stats');
                 setStats(res.data);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Failed to load profile stats', err);
                 // Fallback or empty stats
             } finally {
@@ -90,10 +100,10 @@ export default function ProfilePage() {
                                             <Clock className="h-5 w-5 text-gray-400 mr-3" />
                                             <div>
                                                 <p className="text-sm font-medium text-gray-900">Last Watched</p>
-                                                <p className="text-xs text-gray-500">{stats.last_watched.title}</p>
+                                                <p className="text-xs text-gray-500">{stats.last_watched?.title}</p>
                                             </div>
                                         </div>
-                                        <Button variant="link" onClick={() => router.push(`/subjects/${stats.last_watched.subject_id}/video/${stats.last_watched.video_id}`)}>
+                                        <Button variant="link" onClick={() => router.push(`/subjects/${stats.last_watched?.subject_id}/video/${stats.last_watched?.video_id}`)}>
                                             Resume
                                         </Button>
                                     </div>

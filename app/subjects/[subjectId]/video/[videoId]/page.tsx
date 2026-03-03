@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import apiClient from '@/lib/apiClient';
 import { useVideoStore } from '@/store/videoStore';
@@ -50,13 +51,17 @@ export default function VideoPage({ params }: { params: { subjectId: string; vid
                     } else {
                         setLocked(false);
                     }
-                } catch (e) {
+                } catch {
                     // Progress fetch might fail if not started, default to unlocked if not locked by API
                     setLocked(videoData.is_locked || false);
                 }
 
-            } catch (err: any) {
-                setError(err.response?.data?.message || 'Failed to load video');
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    setError(err.response?.data?.message || 'Failed to load video');
+                } else {
+                    setError('An unexpected error occurred');
+                }
             } finally {
                 setLoading(false);
             }
@@ -122,7 +127,7 @@ export default function VideoPage({ params }: { params: { subjectId: string; vid
             </div>
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <VideoProgressBar videoId={currentVideo.id} />
+                <VideoProgressBar />
                 <div className="mt-6">
                     <VideoMeta subjectId={params.subjectId} />
                 </div>

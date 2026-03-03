@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,8 +40,12 @@ export default function LoginPage() {
             const { accessToken, user } = response.data;
             login(accessToken, user);
             router.push('/subjects');
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to login');
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.message || 'Failed to login');
+            } else {
+                setError('An unexpected error occurred');
+            }
         }
     };
 
@@ -75,7 +80,7 @@ export default function LoginPage() {
                 </CardContent>
                 <CardFooter className="flex justify-center">
                     <div className="text-sm text-gray-500">
-                        Don't have an account?{' '}
+                        Don&apos;t have an account?{' '}
                         <Link href="/auth/register" className="text-blue-600 hover:underline">
                             Register here
                         </Link>

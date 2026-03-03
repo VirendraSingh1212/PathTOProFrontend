@@ -21,8 +21,10 @@ apiClient.interceptors.request.use(
 
 // Variables for refresh token queue management
 let isRefreshing = false;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let failedQueue: any[] = [];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const processQueue = (error: any, token: string | null = null) => {
     failedQueue.forEach((prom) => {
         if (error) {

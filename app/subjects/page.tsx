@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 import Link from 'next/link';
 import apiClient from '@/lib/apiClient';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -25,8 +26,12 @@ export default function SubjectsPage() {
                 setLoading(true);
                 const res = await apiClient.get('/subjects');
                 setSubjects(res.data);
-            } catch (err: any) {
-                setError(err.response?.data?.message || 'Failed to load subjects');
+            } catch (err: unknown) {
+                if (axios.isAxiosError(err)) {
+                    setError(err.response?.data?.message || 'Failed to load subjects');
+                } else {
+                    setError('An unexpected error occurred');
+                }
             } finally {
                 setLoading(false);
             }
