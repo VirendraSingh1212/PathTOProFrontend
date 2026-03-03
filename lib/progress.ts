@@ -18,7 +18,7 @@ export const saveProgressDebounced = (
                 is_completed: isCompleted,
             })
             .catch((err) => console.error('Failed to save progress', err));
-    }, 5000); // 5 seconds debounce
+    }, 3000); // 3 seconds debounce
 };
 
 export const saveProgressNow = async (
