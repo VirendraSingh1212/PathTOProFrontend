@@ -30,8 +30,13 @@ export const useAuthStore = create<AuthState>()(
             isHydrated: false,
             setToken: (token) => set({ accessToken: token, isAuthenticated: !!token }),
             setUser: (user) => set({ user }),
-            login: (token, user) => set({ accessToken: token, user, isAuthenticated: true }),
-            logout: () => set({ accessToken: null, user: null, isAuthenticated: false }),
+            login: (token, user) => {
+                set({ accessToken: token, user, isAuthenticated: true, isHydrated: true });
+            },
+            logout: () => {
+                set({ accessToken: null, user: null, isAuthenticated: false });
+                // Don't reset isHydrated on logout - store is still hydrated
+            },
             setHydrated: () => set({ isHydrated: true }),
         }),
         {
@@ -62,9 +67,17 @@ export const useAuthStore = create<AuthState>()(
                 user: state.user,
             }),
             onRehydrateStorage: () => (state, error) => {
-                if (!error && state) {
-                    // Mark hydration complete after restoring from localStorage
+                // Always mark as hydrated, even if there was an error
+                // This prevents infinite loading states
+                if (state) {
                     state.setHydrated();
+                } else if (error) {
+                    // If hydration failed, still allow app to function
+                    console.warn('Auth hydration failed:', error);
+                    // Create a temporary state to mark as hydrated
+                    setTimeout(() => {
+                        useAuthStore.getState().setHydrated();
+                    }, 0);
                 }
             },
         }
