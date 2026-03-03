@@ -10,20 +10,21 @@ import { Spinner } from '@/components/common/Spinner';
 import { UserCircle, LogOut, BookOpen, Clock } from 'lucide-react';
 
 interface ProfileStats {
-    completed_videos: number;
-    total_videos: number;
+    completed_videos?: number;
+    total_videos?: number;
     last_watched?: {
         title: string;
         subject_id: string;
         video_id: string;
     };
+    [key: string]: any;
 }
 
 export default function ProfilePage() {
     const { user, logout } = useAuthStore();
     const router = useRouter();
     const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState<ProfileStats | null>(null);
+    const [stats, setStats] = useState<ProfileStats[]>([]);
 
     useEffect(() => {
         const fetchProfileData = async () => {
@@ -31,10 +32,10 @@ export default function ProfilePage() {
                 setLoading(true);
                 // Attempt to fetch profile stats
                 const res = await apiClient.get('/profile/stats');
-                setStats(res.data);
-            } catch (err: unknown) {
-                console.error('Failed to load profile stats', err);
-                // Fallback or empty stats
+                setStats(Array.isArray(res.data) ? res.data : (res.data ? [res.data] : []));
+            } catch (err: any) {
+                console.warn("Profile stats not available:", err?.response?.status);
+                setStats([]);
             } finally {
                 setLoading(false);
             }
@@ -84,31 +85,33 @@ export default function ProfilePage() {
                         <CardDescription>Your overall progress across all subjects</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {stats ? (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center">
-                                    <span className="text-3xl font-bold text-blue-700">{stats.completed_videos || 0}</span>
-                                    <span className="text-sm font-medium text-blue-600 mt-1">Completed Videos</span>
-                                </div>
-                                <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center text-center">
-                                    <span className="text-3xl font-bold text-green-700">{stats.total_videos ? Math.round((stats.completed_videos / stats.total_videos) * 100) : 0}%</span>
-                                    <span className="text-sm font-medium text-green-600 mt-1">Overall Progress</span>
-                                </div>
-                                {stats.last_watched && (
-                                    <div className="col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2 flex items-center justify-between">
-                                        <div className="flex items-center">
-                                            <Clock className="h-5 w-5 text-gray-400 mr-3" />
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">Last Watched</p>
-                                                <p className="text-xs text-gray-500">{stats.last_watched?.title}</p>
-                                            </div>
-                                        </div>
-                                        <Button variant="link" onClick={() => router.push(`/subjects/${stats.last_watched?.subject_id}/video/${stats.last_watched?.video_id}`)}>
-                                            Resume
-                                        </Button>
+                        {Array.isArray(stats) && stats.length > 0 ? (
+                            stats.map((stat, idx) => (
+                                <div key={idx} className="grid grid-cols-2 gap-4 mb-4">
+                                    <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center">
+                                        <span className="text-3xl font-bold text-blue-700">{stat.completed_videos || 0}</span>
+                                        <span className="text-sm font-medium text-blue-600 mt-1">Completed Videos</span>
                                     </div>
-                                )}
-                            </div>
+                                    <div className="bg-green-50 p-4 rounded-xl border border-green-100 flex flex-col items-center justify-center text-center">
+                                        <span className="text-3xl font-bold text-green-700">{stat.total_videos ? Math.round((stat.completed_videos || 0 / stat.total_videos) * 100) : 0}%</span>
+                                        <span className="text-sm font-medium text-green-600 mt-1">Overall Progress</span>
+                                    </div>
+                                    {stat.last_watched && (
+                                        <div className="col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-2 flex items-center justify-between">
+                                            <div className="flex items-center">
+                                                <Clock className="h-5 w-5 text-gray-400 mr-3" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-900">Last Watched</p>
+                                                    <p className="text-xs text-gray-500">{stat.last_watched?.title}</p>
+                                                </div>
+                                            </div>
+                                            <Button variant="link" onClick={() => router.push(`/subjects/${stat.last_watched?.subject_id}/video/${stat.last_watched?.video_id}`)}>
+                                                Resume
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
                         ) : (
                             <div className="text-center py-8">
                                 <BookOpen className="h-12 w-12 text-gray-200 mx-auto mb-3" />
