@@ -63,7 +63,7 @@ export default function SubjectsPage() {
                 <p className="text-gray-500 mt-2">Select a subject to continue learning.</p>
             </div>
 
-            {subjects.length === 0 ? (
+            {(!Array.isArray(subjects) || subjects.length === 0) ? (
                 <div className="text-center py-12 border rounded-lg bg-white">
                     <BookOpen className="mx-auto h-12 w-12 text-gray-300" />
                     <h3 className="mt-2 text-sm font-semibold text-gray-900">No subjects</h3>
@@ -71,7 +71,7 @@ export default function SubjectsPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {subjects.map((subject) => (
+                    {Array.isArray(subjects) && subjects.map((subject) => (
                         <Link key={subject.id} href={`/subjects/${subject.id}`}>
                             <Card className="h-full hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white/70 backdrop-blur-md hover:translate-y-[-2px]">
                                 {subject.thumbnail_url && (

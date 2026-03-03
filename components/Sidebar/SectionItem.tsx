@@ -17,8 +17,10 @@ export default function SectionItem({ section, subjectId }: SectionItemProps) {
     const { isVideoCompleted } = useSidebarStore();
     const { currentVideo } = useVideoStore();
 
+    // Ensure videos is an iterable array
+    const safeVideos = Array.isArray(section?.videos) ? section.videos : [];
     // Sort videos by order_index
-    const sortedVideos = [...(section.videos || [])].sort((a, b) => a.order_index - b.order_index);
+    const sortedVideos = [...safeVideos].sort((a: any, b: any) => a.order_index - b.order_index);
 
     return (
         <div className="border-b border-gray-100 last:border-b-0">
@@ -38,7 +40,7 @@ export default function SectionItem({ section, subjectId }: SectionItemProps) {
 
             {isOpen && (
                 <div className="bg-white">
-                    {sortedVideos.map((video) => {
+                    {Array.isArray(sortedVideos) && sortedVideos.map((video: any) => {
                         const isCompleted = isVideoCompleted(video.id);
                         const isCurrent = currentVideo?.id === video.id;
                         const isLocked = video.is_locked;
