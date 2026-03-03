@@ -16,6 +16,11 @@ interface Subject {
     thumbnail_url?: string;
 }
 
+interface SubjectsResponse {
+    success: boolean;
+    data: Subject[];
+}
+
 export default function SubjectsPage() {
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,8 +30,9 @@ export default function SubjectsPage() {
         const fetchSubjects = async () => {
             try {
                 setLoading(true);
-                const res = await apiClient.get('/subjects');
-                setSubjects(res.data);
+                const res = await apiClient.get<SubjectsResponse>('/subjects');
+                // Backend returns { success: true, data: [...] }
+                setSubjects(res.data.data ?? []);
             } catch (err: unknown) {
                 if (axios.isAxiosError(err)) {
                     setError(err.response?.data?.message || 'Failed to load subjects');
