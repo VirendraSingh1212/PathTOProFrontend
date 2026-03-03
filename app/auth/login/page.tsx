@@ -53,7 +53,7 @@ export default function LoginPage() {
         <div className="flex min-h-screen items-center justify-center bg-gray-50/50 p-4">
             <Card className="w-full max-w-md shadow-lg border-0 bg-white/70 backdrop-blur-xl">
                 <CardHeader className="space-y-1">
-                    <CardTitle className="text-2xl font-bold tracking-tight">Login to LMS</CardTitle>
+                    <CardTitle className="text-2xl font-bold tracking-tight">Login to PathToPro</CardTitle>
                     <CardDescription>Enter your email and password to access your subjects</CardDescription>
                 </CardHeader>
                 <CardContent>
