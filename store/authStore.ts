@@ -20,7 +20,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
     persist(
-        (set) => ({
+        (set, get) => ({
             user: null,
             accessToken: null,
             isAuthenticated: false,
@@ -32,7 +32,26 @@ export const useAuthStore = create<AuthState>()(
         }),
         {
             name: 'auth-storage', // localStorage key
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => ({
+                getItem: (name: string) => {
+                    if (typeof window === 'undefined') return null;
+                    try {
+                        return JSON.parse(localStorage.getItem(name) || 'null');
+                    } catch {
+                        return null;
+                    }
+                },
+                setItem: (name: string, value: string) => {
+                    if (typeof window !== 'undefined') {
+                        localStorage.setItem(name, value);
+                    }
+                },
+                removeItem: (name: string) => {
+                    if (typeof window !== 'undefined') {
+                        localStorage.removeItem(name);
+                    }
+                },
+            })),
             partialize: (state) => ({
                 accessToken: state.accessToken,
                 isAuthenticated: state.isAuthenticated,
