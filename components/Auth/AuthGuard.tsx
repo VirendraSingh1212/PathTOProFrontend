@@ -25,6 +25,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             } else if (isPublicPath && isAuthenticated && validToken) {
                 if (pathname === '/auth/login' || pathname === '/auth/register') {
                     router.replace('/subjects');
+                    return;
                 }
             }
             setIsReady(true);
