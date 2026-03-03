@@ -1,0 +1,62 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useSidebarStore } from '@/store/sidebarStore';
+import apiClient from '@/lib/apiClient';
+import SubjectSidebar from '@/components/Sidebar/SubjectSidebar';
+import { Spinner } from '@/components/common/Spinner';
+
+export default function SubjectLayout({
+    children,
+    params,
+}: {
+    children: React.ReactNode;
+    params: { subjectId: string };
+}) {
+    const { setSubjectTree, setLoading, setError, loading, error, initializeCompletedVideos } = useSidebarStore();
+
+    useEffect(() => {
+        const fetchTree = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                // Load the subject tree: Sections -> Videos
+                const treeRes = await apiClient.get(`/subjects/${params.subjectId}/tree`);
+                setSubjectTree(treeRes.data);
+
+                // Also load completed progress for this subject if available
+                try {
+                    const progRes = await apiClient.get(`/progress/subjects/${params.subjectId}`);
+                    initializeCompletedVideos(progRes.data.completed_video_ids || []);
+                } catch (e) {
+                    console.error("Progress not loaded", e);
+                }
+            } catch (err: any) {
+                setError(err.response?.data?.message || 'Failed to load subject content');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTree();
+    }, [params.subjectId, setSubjectTree, setLoading, setError, initializeCompletedVideos]);
+
+    return (
+        <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
+            <aside className="w-80 flex-shrink-0 border-r bg-white h-full overflow-y-auto">
+                {loading ? (
+                    <div className="flex justify-center items-center h-full">
+                        <Spinner />
+                    </div>
+                ) : error ? (
+                    <div className="p-4 text-red-500">{error}</div>
+                ) : (
+                    <SubjectSidebar subjectId={params.subjectId} />
+                )}
+            </aside>
+            <main className="flex-1 overflow-y-auto bg-gray-50 relative">
+                {children}
+            </main>
+        </div>
+    );
+}
