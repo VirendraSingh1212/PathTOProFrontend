@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSidebarStore } from '@/store/sidebarStore';
 import apiClient from '@/lib/apiClient';
@@ -8,6 +8,7 @@ import SubjectSidebar from '@/components/Sidebar/SubjectSidebar';
 import { Spinner } from '@/components/common/Spinner';
 import AuthGuard from '@/components/Auth/AuthGuard';
 import AuthInitializer from '@/components/AuthInitializer';
+import { BookOpen } from 'lucide-react';
 
 export default function SubjectLayout({
     children,
@@ -17,6 +18,7 @@ export default function SubjectLayout({
     params: { subjectId: string };
 }) {
     const { setSubjectTree, setLoading, setError, loading, error, initializeCompletedVideos } = useSidebarStore();
+    const [hasContent, setHasContent] = useState(false);
 
     useEffect(() => {
         const fetchTree = async () => {
@@ -25,6 +27,12 @@ export default function SubjectLayout({
                 setError(null);
                 // Load the subject tree: Sections -> Videos
                 const treeRes = await apiClient.get(`/subjects/${params.subjectId}/tree`);
+                
+                // Check if we got valid data with sections/videos
+                const hasSections = treeRes.data && 
+                    (Array.isArray(treeRes.data.sections) || Array.isArray(treeRes.data));
+                
+                setHasContent(hasSections);
                 setSubjectTree(treeRes.data);
 
                 // Also load completed progress for this subject if available
@@ -36,7 +44,13 @@ export default function SubjectLayout({
                 }
             } catch (err: unknown) {
                 if (axios.isAxiosError(err)) {
-                    setError(err.response?.data?.message || 'Failed to load subject content');
+                    // If 404 or no content, don't show error - just set empty state
+                    if (err.response?.status === 404) {
+                        setHasContent(false);
+                        setSubjectTree([]);
+                    } else {
+                        setError(err.response?.data?.message || 'Failed to load subject content');
+                    }
                 } else {
                     setError('An unexpected error occurred');
                 }
@@ -59,12 +73,31 @@ export default function SubjectLayout({
                             </div>
                         ) : error ? (
                             <div className="p-4 text-red-500">{error}</div>
+                        ) : !hasContent ? (
+                            <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+                                <BookOpen className="h-16 w-16 text-gray-300 mb-4" />
+                                <h3 className="text-lg font-semibold text-gray-700">Content Coming Soon</h3>
+                                <p className="text-sm text-gray-500 mt-2 max-w-xs">
+                                    Lessons for this subject have not been added yet. Check back later!
+                                </p>
+                            </div>
                         ) : (
                             <SubjectSidebar subjectId={params.subjectId} />
                         )}
                     </aside>
                     <main className="flex-1 overflow-y-auto bg-gray-50 relative">
-                        {children}
+                        {!hasContent && !loading && !error ? (
+                            <div className="flex flex-col items-center justify-center h-full">
+                                <BookOpen className="h-24 w-24 text-gray-300 mb-6" />
+                                <h2 className="text-2xl font-semibold text-gray-700">Content Coming Soon</h2>
+                                <p className="text-gray-500 mt-3 text-center max-w-md px-4">
+                                    This subject exists but lessons haven&apos;t been added yet. 
+                                    We&apos;re working on creating quality content for you!
+                                </p>
+                            </div>
+                        ) : (
+                            children
+                        )}
                     </main>
                 </div>
             </AuthGuard>
