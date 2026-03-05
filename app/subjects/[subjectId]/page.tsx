@@ -122,31 +122,47 @@ export default function CoursePage() {
     }
   };
 
+  // Resume last lesson function
+  const resumeLastLesson = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/progress/subject/${subjectId}`);
+      const data = await res.json();
+      
+      if (data?.lastLessonId) {
+        // Find and set that lesson
+        const lastLesson = flatLessons.find(l => l.id === data.lastLessonId);
+        if (lastLesson) {
+          setCurrentLesson(lastLesson);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load progress:', err);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-72 h-screen overflow-y-auto border-r sticky top-0 bg-white">
-        <div className="p-5">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Course Content</h2>
-
-          {/* Progress Bar */}
-          <div className="mb-6 p-3 bg-gray-50 rounded-lg border">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs font-semibold text-gray-600 uppercase">Progress</span>
-              <span className="text-sm font-bold text-blue-600">{progressPercent}%</span>
+      <div className="w-72 h-screen overflow-y-auto border-r bg-white">
+        <div className="sticky top-0 bg-white p-5 border-b">
+          <h2 className="text-lg font-bold text-gray-900">Course Content</h2>
+          
+          {/* Mini Progress in Sidebar */}
+          <div className="mt-3">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-medium text-gray-600">Your Progress</span>
+              <span className="text-xs font-bold text-blue-600">{progressPercent}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
               <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              {completedCount} / {totalLessons} lessons
-            </p>
           </div>
+        </div>
 
-          {/* Sections and Lessons */}
+        <div className="sticky top-28 p-5 h-fit">
           {sections.map((section) => (
             <div key={section.id} className="mb-5">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
@@ -187,12 +203,49 @@ export default function CoursePage() {
           </div>
         ) : (
           <div className="max-w-4xl mx-auto">
+            
+            {/* Global Progress Bar */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-sm font-semibold text-gray-700">Course Progress</h2>
+                <span className="text-sm text-gray-500">
+                  Lesson {currentIndex + 1} of {flatLessons.length}
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-blue-600 h-2 transition-all duration-300"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Resume Learning Banner */}
+            {completedCount > 0 && completedCount < totalLessons && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-blue-700 font-medium">
+                    Resume where you left off
+                  </p>
+                  <p className="text-xs text-blue-500">
+                    Continue your learning journey
+                  </p>
+                </div>
+                <button
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 transition"
+                  onClick={resumeLastLesson}
+                >
+                  Resume
+                </button>
+              </div>
+            )}
+
             {/* Lesson Header */}
             <div className="flex justify-between items-center mb-4">
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900">
                 {currentLesson.title}
               </h1>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
                 Lesson {currentIndex + 1} of {flatLessons.length}
               </span>
             </div>
@@ -204,25 +257,37 @@ export default function CoursePage() {
               </div>
             )}
 
-            {/* Video Player Card */}
-            <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
-              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                <iframe
-                  src={toEmbed(currentLesson.videoUrl)}
-                  className="absolute top-0 left-0 w-full h-full rounded-lg"
-                  title={currentLesson.title}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  frameBorder="0"
-                />
-              </div>
+            {/* Video Player - Polished */}
+            <div className="max-w-4xl mx-auto shadow-xl rounded-xl overflow-hidden bg-white mb-6 border border-gray-100">
+              {!currentLesson.videoUrl ? (
+                <div className="aspect-video flex items-center justify-center text-gray-400 bg-gray-50">
+                  <div className="text-center py-20">
+                    <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <p className="mt-4 text-lg font-medium">Video Unavailable</p>
+                    <p className="mt-2 text-sm">This lesson doesn't have a video yet.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    src={toEmbed(currentLesson.videoUrl)}
+                    className="absolute top-0 left-0 w-full h-full"
+                    title={currentLesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    frameBorder="0"
+                  />
+                </div>
+              )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between mt-5">
+            {/* Navigation Buttons - Improved Alignment */}
+            <div className="flex justify-between items-center mt-6 pt-6 border-t border-gray-200">
               <button
                 onClick={markLessonComplete}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
+                className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2 shadow-sm"
               >
                 ✓ Mark as Complete
               </button>
@@ -231,9 +296,9 @@ export default function CoursePage() {
                 <button
                   onClick={goToNextLesson}
                   disabled={!nextLesson}
-                  className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium flex items-center gap-2"
+                  className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium flex items-center gap-2 shadow-sm"
                 >
-                  Next Lesson →
+                  {nextLesson ? 'Next Lesson →' : 'Course Complete 🎉'}
                 </button>
               </div>
             </div>
