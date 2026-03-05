@@ -80,38 +80,44 @@ export default function HomePage() {
       <section className="py-20 px-4 bg-white border-t border-gray-100 flex-1">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-            {/* Feature 1 */}
-            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-gray-50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-full bg-blue-50 flex items-center justify-center mb-6">
-                <BookOpen className="h-7 w-7 text-blue-600" />
+            {/* Feature 1 - Structured Courses */}
+            <Link href="/subjects" className="block">
+              <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-gray-50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="h-14 w-14 rounded-full bg-blue-50 flex items-center justify-center mb-6">
+                  <BookOpen className="h-7 w-7 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Structured Courses</h3>
+                <p className="text-gray-500 leading-relaxed max-w-xs">
+                  Step-by-step learning paths.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Structured Courses</h3>
-              <p className="text-gray-500 leading-relaxed max-w-xs">
-                Step-by-step learning paths.
-              </p>
-            </div>
+            </Link>
 
-            {/* Feature 2 */}
-            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-gray-50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-full bg-green-50 flex items-center justify-center mb-6">
-                <TrendingUp className="h-7 w-7 text-green-600" />
+            {/* Feature 2 - Track Progress */}
+            <Link href="/subjects" className="block">
+              <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-gray-50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="h-14 w-14 rounded-full bg-green-50 flex items-center justify-center mb-6">
+                  <TrendingUp className="h-7 w-7 text-green-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Track Progress</h3>
+                <p className="text-gray-500 leading-relaxed max-w-xs">
+                  Resume exactly where you stopped.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Track Progress</h3>
-              <p className="text-gray-500 leading-relaxed max-w-xs">
-                Resume exactly where you stopped.
-              </p>
-            </div>
+            </Link>
 
-            {/* Feature 3 */}
-            <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-gray-50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-6">
-                <Lock className="h-7 w-7 text-purple-600" />
+            {/* Feature 3 - Focused Learning */}
+            <Link href="/subjects" className="block">
+              <div className="flex flex-col items-center text-center p-8 rounded-2xl bg-white border border-gray-50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+                <div className="h-14 w-14 rounded-full bg-purple-50 flex items-center justify-center mb-6">
+                  <Lock className="h-7 w-7 text-purple-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-3">Focused Learning</h3>
+                <p className="text-gray-500 leading-relaxed max-w-xs">
+                  Unlock lessons progressively.
+                </p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">Focused Learning</h3>
-              <p className="text-gray-500 leading-relaxed max-w-xs">
-                Unlock lessons progressively.
-              </p>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
