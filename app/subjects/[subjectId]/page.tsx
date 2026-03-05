@@ -110,6 +110,21 @@ export default function SubjectCoursePage() {
     if (subjectId) loadSubjectTree();
   }, [subjectId]);
 
+  // Fetch progress from backend
+  useEffect(() => {
+    async function fetchProgress() {
+      try {
+        const res = await apiClient.get(`/progress/subjects/${subjectId}`);
+        const completed = res.data?.data?.completed_video_ids || res.data?.completedLessons || [];
+        setCompletedLessons(completed);
+      } catch (error) {
+        console.error("Failed to fetch progress", error);
+      }
+    }
+
+    if (subjectId) fetchProgress();
+  }, [subjectId]);
+
   // Save resume lesson to localStorage whenever active lesson changes
   useEffect(() => {
     if (activeLesson) {
@@ -120,13 +135,16 @@ export default function SubjectCoursePage() {
     }
   }, [subjectId, activeLesson]);
 
-  // Placeholder for future backend integration
+  // Mark lesson complete and save to backend
   const markLessonComplete = async (lessonId: string) => {
     try {
-      // later connect to:
-      // POST /api/progress
-      // await apiClient.post("/progress", { lessonId });
+      // Save to backend
+      await apiClient.post("/progress", {
+        video_id: lessonId,
+        subject_id: subjectId
+      });
 
+      // Update local state
       setCompletedLessons((prev) =>
         prev.includes(lessonId) ? prev : [...prev, lessonId]
       );
