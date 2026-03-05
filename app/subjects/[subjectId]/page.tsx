@@ -81,6 +81,9 @@ export default function CoursePage() {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
     
+    // Save next lesson to localStorage
+    localStorage.setItem(`lastLesson-${subjectId}`, nextLesson.id);
+    
     setCurrentLesson(nextLesson);
   };
 
@@ -89,6 +92,10 @@ export default function CoursePage() {
     if (currentLesson && !completedLessons.includes(currentLesson.id)) {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
+    
+    // Save to localStorage for resume feature
+    localStorage.setItem(`lastLesson-${subjectId}`, lesson.id);
+    
     setCurrentLesson(lesson);
   };
 
@@ -122,21 +129,47 @@ export default function CoursePage() {
     }
   };
 
-  // Resume last lesson function
+  // Resume last lesson function (hybrid: localStorage + backend)
   const resumeLastLesson = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/progress/subject/${subjectId}`);
-      const data = await res.json();
+      // Try localStorage first (immediate)
+      const savedLessonId = localStorage.getItem(`lastLesson-${subjectId}`);
       
-      if (data?.lastLessonId) {
-        // Find and set that lesson
-        const lastLesson = flatLessons.find(l => l.id === data.lastLessonId);
-        if (lastLesson) {
-          setCurrentLesson(lastLesson);
+      if (savedLessonId) {
+        const savedLesson = flatLessons.find(l => l.id === savedLessonId);
+        if (savedLesson) {
+          setCurrentLesson(savedLesson);
+          console.log('✅ Resumed from localStorage:', savedLesson.title);
+          return;
         }
       }
+
+      // Fallback: Try backend API
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/progress/subject/${subjectId}`);
+        const data = await res.json();
+        
+        if (data?.lastLessonId) {
+          const lastLesson = flatLessons.find(l => l.id === data.lastLessonId);
+          if (lastLesson) {
+            setCurrentLesson(lastLesson);
+            console.log('✅ Resumed from backend:', lastLesson.title);
+            return;
+          }
+        }
+      } catch (backendErr) {
+        console.log('ℹ️ Backend progress not available, using localStorage only');
+      }
+
+      // If nothing found, start from beginning or first incomplete lesson
+      const firstIncomplete = flatLessons.find(l => !completedLessons.includes(l.id));
+      if (firstIncomplete) {
+        setCurrentLesson(firstIncomplete);
+      } else if (flatLessons.length > 0) {
+        setCurrentLesson(flatLessons[0]);
+      }
     } catch (err) {
-      console.error('Failed to load progress:', err);
+      console.error('❌ Failed to resume:', err);
     }
   };
 
