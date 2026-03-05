@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
-import { BookOpen, PlayCircle } from "lucide-react";
+import { BookOpen, PlayCircle, CheckCircle } from "lucide-react";
 
 type Lesson = {
   id: string;
@@ -41,6 +41,25 @@ export default function SubjectCoursePage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+
+  // Flatten lessons for navigation and progress
+  const allLessons = useMemo(() => {
+    return sections
+      .slice()
+      .sort((a, b) => (a.position || 0) - (b.position || 0))
+      .flatMap((s) =>
+        (s.lessons || [])
+          .slice()
+          .sort((a, b) => (a.position || 0) - (b.position || 0))
+      );
+  }, [sections]);
+
+  // Calculate progress percentage
+  const progressPercentage = useMemo(() => {
+    if (allLessons.length === 0) return 0;
+    return Math.round((completedLessons.length / allLessons.length) * 100);
+  }, [completedLessons, allLessons.length]);
 
   useEffect(() => {
     async function loadSubjectTree() {
@@ -57,8 +76,18 @@ export default function SubjectCoursePage() {
 
         setSections(fetchedSections);
 
-        // Auto-select first lesson if none selected
-        if (fetchedSections.length > 0) {
+        // Load saved progress from localStorage
+        const savedLesson = localStorage.getItem(`resume-${subjectId}`);
+        if (savedLesson) {
+          try {
+            setActiveLesson(JSON.parse(savedLesson));
+          } catch {
+            console.error('Failed to load saved lesson');
+          }
+        }
+
+        // Auto-select first lesson if no saved lesson
+        if (!activeLesson && fetchedSections.length > 0) {
           const first = fetchedSections
             .slice()
             .sort((a, b) => (a.position || 0) - (b.position || 0))
@@ -81,6 +110,16 @@ export default function SubjectCoursePage() {
     if (subjectId) loadSubjectTree();
   }, [subjectId]);
 
+  // Save resume lesson to localStorage whenever active lesson changes
+  useEffect(() => {
+    if (activeLesson) {
+      localStorage.setItem(
+        `resume-${subjectId}`,
+        JSON.stringify(activeLesson)
+      );
+    }
+  }, [subjectId, activeLesson]);
+
   // Placeholder for future backend integration
   const markLessonComplete = async (lessonId: string) => {
     try {
@@ -88,9 +127,22 @@ export default function SubjectCoursePage() {
       // POST /api/progress
       // await apiClient.post("/progress", { lessonId });
 
+      setCompletedLessons((prev) =>
+        prev.includes(lessonId) ? prev : [...prev, lessonId]
+      );
       console.log("Lesson completed:", lessonId);
     } catch (err) {
       console.error("Progress update failed", err);
+    }
+  };
+
+  // Go to next lesson
+  const goToNextLesson = () => {
+    if (!activeLesson) return;
+
+    const index = allLessons.findIndex((l) => l.id === activeLesson.id);
+    if (index !== -1 && index < allLessons.length - 1) {
+      setActiveLesson(allLessons[index + 1]);
     }
   };
 
@@ -132,6 +184,21 @@ export default function SubjectCoursePage() {
       <div className="w-80 border-r overflow-y-auto p-4 bg-white">
         <h2 className="font-bold text-lg mb-4 tracking-tight text-gray-900">Course Content</h2>
 
+        {/* Progress Bar */}
+        {allLessons.length > 0 && (
+          <div className="mb-6">
+            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercentage}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-600 mt-2 font-medium">
+              {progressPercentage}% Complete ({completedLessons.length}/{allLessons.length})
+            </p>
+          </div>
+        )}
+
         {sections.length === 0 && (
           <div className="text-sm text-gray-500">
             No content available.
@@ -148,6 +215,7 @@ export default function SubjectCoursePage() {
             <ul className="space-y-2">
               {section.lessons?.map((lesson) => {
                 const active = activeLesson?.id === lesson.id;
+                const completed = completedLessons.includes(lesson.id);
 
                 return (
                   <li
@@ -156,14 +224,23 @@ export default function SubjectCoursePage() {
                     className={`flex justify-between items-center text-sm cursor-pointer p-2 rounded transition-colors ${
                       active
                         ? "bg-blue-50 text-blue-600 font-medium"
+                        : completed
+                        ? "bg-green-50 text-green-700"
                         : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      {lesson.isPreview ? "🔓" : "🔒"} {lesson.title}
+                      {completed ? (
+                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      ) : (
+                        <span className="text-base flex-shrink-0">
+                          {lesson.isPreview ? "🔓" : "🔒"}
+                        </span>
+                      )}
+                      <span className="flex-1">{lesson.title}</span>
                     </span>
 
-                    {lesson.isPreview && (
+                    {lesson.isPreview && !completed && (
                       <span className="text-xs text-blue-600 font-medium">
                         Free Preview
                       </span>
@@ -223,6 +300,19 @@ export default function SubjectCoursePage() {
                 <p className="text-lg font-medium">No video available for this lesson yet.</p>
               </div>
             )}
+
+            {/* Navigation Buttons */}
+            <div className="mt-6 flex items-center gap-4">
+              <button
+                onClick={goToNextLesson}
+                disabled={!allLessons.find((l) => l.id === activeLesson.id) || 
+                          allLessons.indexOf(allLessons.find((l) => l.id === activeLesson.id)!) === allLessons.length - 1}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+              >
+                Next Lesson
+                <span className="text-sm">→</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
