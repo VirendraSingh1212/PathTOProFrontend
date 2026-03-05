@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
-import { BookOpen, PlayCircle, CheckCircle } from "lucide-react";
+import { BookOpen, PlayCircle } from "lucide-react";
 import { getEmbedUrl } from "@/utils/video";
 
 type Lesson = {
@@ -56,12 +56,6 @@ export default function SubjectCoursePage() {
           .sort((a, b) => (a.position || 0) - (b.position || 0))
       );
   }, [sections]);
-
-  // Calculate progress percentage
-  const progressPercentage = useMemo(() => {
-    if (allLessons.length === 0) return 0;
-    return Math.round((completedLessons.length / allLessons.length) * 100);
-  }, [completedLessons, allLessons.length]);
 
   useEffect(() => {
     async function loadSubjectTree() {
@@ -145,11 +139,6 @@ export default function SubjectCoursePage() {
     if (index !== -1 && index < allLessons.length - 1) {
       setActiveLesson(allLessons[index + 1]);
     }
-  };
-
-  // Handle lesson click
-  const handleLessonClick = (lesson: Lesson) => {
-    setActiveLesson(lesson);
   };
 
   if (loading) {
