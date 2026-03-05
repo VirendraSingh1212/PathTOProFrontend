@@ -218,12 +218,6 @@ export default function SubjectCoursePage() {
           </div>
         )}
 
-        {sections.length === 0 && (
-          <div className="text-sm text-gray-500">
-            No content available.
-          </div>
-        )}
-
         {sections.map((section) => (
           <div key={section.id} className="mb-6">
             <h3 className="font-semibold text-base mb-3 flex items-center gap-2 text-gray-800">
