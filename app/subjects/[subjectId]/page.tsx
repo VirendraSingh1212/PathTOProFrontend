@@ -136,25 +136,6 @@ export default function SubjectCoursePage() {
     }
   }, [subjectId, activeLesson]);
 
-  // Mark lesson complete and save to backend
-  const markLessonComplete = async (lessonId: string) => {
-    try {
-      // Save to backend
-      await apiClient.post("/progress", {
-        video_id: lessonId,
-        subject_id: subjectId
-      });
-
-      // Update local state
-      setCompletedLessons((prev) =>
-        prev.includes(lessonId) ? prev : [...prev, lessonId]
-      );
-      console.log("Lesson completed:", lessonId);
-    } catch (err) {
-      console.error("Progress update failed", err);
-    }
-  };
-
   // Go to next lesson
   const goToNextLesson = () => {
     if (!activeLesson) return;
