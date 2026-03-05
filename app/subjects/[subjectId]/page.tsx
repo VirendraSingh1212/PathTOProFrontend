@@ -116,211 +116,128 @@ export default function CoursePage() {
     );
   }
 
+  const markLessonComplete = () => {
+    if (currentLesson && !completedLessons.includes(currentLesson.id)) {
+      setCompletedLessons((prev) => [...prev, currentLesson.id]);
+    }
+  };
+
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div
-        style={{
-          width: "320px",
-          borderRight: "1px solid #e5e7eb",
-          overflowY: "auto",
-          padding: "20px",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <h3 style={{ marginBottom: "16px", fontSize: "18px", fontWeight: "600" }}>Course Content</h3>
+      <div className="w-72 h-screen overflow-y-auto border-r sticky top-0 bg-white">
+        <div className="p-5">
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Course Content</h2>
 
-        {/* Progress Bar */}
-        <div style={{ marginBottom: "20px", padding: "12px", backgroundColor: "white", borderRadius: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.1)" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px", fontSize: "14px" }}>
-            <span style={{ fontWeight: "500" }}>Course Progress</span>
-            <span style={{ fontWeight: "600", color: "#2563eb" }}>{progressPercent}%</span>
+          {/* Progress Bar */}
+          <div className="mb-6 p-3 bg-gray-50 rounded-lg border">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-xs font-semibold text-gray-600 uppercase">Progress</span>
+              <span className="text-sm font-bold text-blue-600">{progressPercent}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              {completedCount} / {totalLessons} lessons
+            </p>
           </div>
-          <div style={{ width: "100%", backgroundColor: "#e5e7eb", borderRadius: "999px", height: "8px", overflow: "hidden" }}>
-            <div
-              style={{
-                width: `${progressPercent}%`,
-                backgroundColor: "#2563eb",
-                height: "100%",
-                transition: "width 0.3s ease",
-              }}
-            />
-          </div>
-          <p style={{ fontSize: "12px", color: "#6b7280", marginTop: "6px" }}>
-            {completedCount} of {totalLessons} lessons completed
-          </p>
+
+          {/* Sections and Lessons */}
+          {sections.map((section) => (
+            <div key={section.id} className="mb-5">
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                {section.title}
+              </h3>
+
+              <ul className="space-y-1">
+                {section.lessons.map((lesson) => (
+                  <li
+                    key={lesson.id}
+                    onClick={() => handleLessonClick(lesson)}
+                    className={`flex justify-between items-center px-3 py-2 text-sm rounded cursor-pointer transition ${
+                      currentLesson?.id === lesson.id
+                        ? 'bg-blue-50 text-blue-700 font-semibold'
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="flex-1 truncate">{lesson.title}</span>
+                    {completedLessons.includes(lesson.id) && (
+                      <span className="text-green-600 font-bold ml-2">✓</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-
-        {/* Sections and Lessons */}
-        {sections.map((section) => (
-          <div key={section.id} style={{ marginBottom: "20px" }}>
-            <h4 style={{ 
-              marginTop: "16px", 
-              marginBottom: "12px", 
-              fontWeight: "600",
-              fontSize: "14px",
-              color: "#374151",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em"
-            }}>
-              {section.title}
-            </h4>
-
-            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-              {section.lessons.map((lesson) => (
-                <li
-                  key={lesson.id}
-                  onClick={() => handleLessonClick(lesson)}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "10px 12px",
-                    marginBottom: "4px",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    backgroundColor: currentLesson?.id === lesson.id ? "#dbeafe" : "transparent",
-                    fontWeight: currentLesson?.id === lesson.id ? "600" : "400",
-                    color: currentLesson?.id === lesson.id ? "#1e40af" : "#374151",
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (currentLesson?.id !== lesson.id) {
-                      e.currentTarget.style.backgroundColor = "#f3f4f6";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (currentLesson?.id !== lesson.id) {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                    }
-                  }}
-                >
-                  <span style={{ fontSize: "14px", flex: 1 }}>{lesson.title}</span>
-                  {completedLessons.includes(lesson.id) && (
-                    <span style={{ color: "#16a34a", fontWeight: "bold", marginLeft: "8px" }}>✓</span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
       </div>
 
-      {/* Video Area */}
-      <div style={{ flex: 1, padding: "30px", backgroundColor: "white", overflowY: "auto" }}>
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto p-8">
         {!currentLesson ? (
-          <div style={{ 
-            display: "flex", 
-            justifyContent: "center", 
-            alignItems: "center", 
-            height: "400px",
-            color: "#6b7280"
-          }}>
-            <div style={{ textAlign: "center" }}>
-              <p style={{ fontSize: "18px", marginBottom: "8px" }}>Loading lesson...</p>
-              <p style={{ fontSize: "14px" }}>Please wait</p>
+          <div className="flex items-center justify-center h-[400px] text-gray-500">
+            <div className="text-center">
+              <p className="text-lg mb-2">Loading lesson...</p>
+              <p className="text-sm">Please wait</p>
             </div>
           </div>
         ) : (
-          <>
-            <h2 style={{ 
-              marginBottom: "12px", 
-              fontSize: "24px", 
-              fontWeight: "700",
-              color: "#111827"
-            }}>
-              {currentLesson.title}
-            </h2>
+          <div className="max-w-4xl mx-auto">
+            {/* Lesson Header */}
+            <div className="flex justify-between items-center mb-4">
+              <h1 className="text-xl font-semibold text-gray-900">
+                {currentLesson.title}
+              </h1>
+              <span className="text-sm text-gray-500">
+                Lesson {currentIndex + 1} of {flatLessons.length}
+              </span>
+            </div>
 
+            {/* Preview Badge */}
             {currentLesson.isPreview && (
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  color: "#2563eb",
-                  backgroundColor: "#dbeafe",
-                  padding: "6px 12px",
-                  borderRadius: "999px",
-                  fontSize: "13px",
-                  fontWeight: "500",
-                  marginBottom: "16px",
-                }}
-              >
+              <div className="inline-flex items-center gap-1.5 text-sm text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-4 font-medium">
                 🔓 Free Preview Available
               </div>
             )}
 
-            <div style={{ 
-              position: "relative",
-              paddingTop: "56.25%", /* 16:9 Aspect Ratio */
-              marginBottom: "24px",
-              borderRadius: "12px",
-              overflow: "hidden",
-              boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-              backgroundColor: "#000"
-            }}>
-              <iframe
-                src={toEmbed(currentLesson.videoUrl)}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "12px",
-                }}
-                title={currentLesson.title}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                frameBorder="0"
-              />
+            {/* Video Player Card */}
+            <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
+              <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                <iframe
+                  src={toEmbed(currentLesson.videoUrl)}
+                  className="absolute top-0 left-0 w-full h-full rounded-lg"
+                  title={currentLesson.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  frameBorder="0"
+                />
+              </div>
             </div>
 
-            {/* Navigation Buttons */}
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: "24px",
-              paddingTop: "24px",
-              borderTop: "1px solid #e5e7eb"
-            }}>
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between mt-5">
               <button
-                onClick={goToNextLesson}
-                disabled={!nextLesson}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: nextLesson ? "#2563eb" : "#d1d5db",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: nextLesson ? "pointer" : "not-allowed",
-                  fontSize: "15px",
-                  fontWeight: "600",
-                  transition: "all 0.2s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (nextLesson) {
-                    e.currentTarget.style.backgroundColor = "#1d4ed8";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (nextLesson) {
-                    e.currentTarget.style.backgroundColor = "#2563eb";
-                  }
-                }}
+                onClick={markLessonComplete}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition font-medium flex items-center gap-2"
               >
-                {nextLesson ? "Next Lesson →" : "Course Complete 🎉"}
+                ✓ Mark as Complete
               </button>
 
-              {currentIndex >= 0 && (
-                <p style={{ color: "#6b7280", fontSize: "14px" }}>
-                  Lesson {currentIndex + 1} of {totalLessons}
-                </p>
-              )}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={goToNextLesson}
+                  disabled={!nextLesson}
+                  className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition font-medium flex items-center gap-2"
+                >
+                  Next Lesson →
+                </button>
+              </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>
