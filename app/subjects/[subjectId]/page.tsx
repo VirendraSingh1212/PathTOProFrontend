@@ -16,6 +16,22 @@ type Section = {
   lessons: Lesson[];
 };
 
+function convertYoutubeUrl(url?: string) {
+  if (!url) return "";
+
+  if (url.includes("watch?v=")) {
+    const id = url.split("watch?v=")[1].split("&")[0];
+    return `https://www.youtube.com/embed/${id}`;
+  }
+
+  if (url.includes("youtu.be/")) {
+    const id = url.split("youtu.be/")[1];
+    return `https://www.youtube.com/embed/${id}`;
+  }
+
+  return url;
+}
+
 export default function CoursePage() {
   const params = useParams();
   const subjectId = params.subjectId as string;
@@ -110,11 +126,10 @@ export default function CoursePage() {
             )}
 
             <iframe
-              width="100%"
-              height="480"
-              src={currentLesson.videoUrl}
-              title="Lesson Video"
-              frameBorder="0"
+              src={convertYoutubeUrl(currentLesson?.videoUrl)}
+              title={currentLesson?.title}
+              className="w-full h-[450px] rounded-lg border"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
 
