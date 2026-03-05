@@ -38,6 +38,7 @@ export default function SubjectCoursePage() {
   const params = useParams();
   const subjectId = params?.subjectId as string;
 
+  // State management
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
