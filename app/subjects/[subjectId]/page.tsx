@@ -146,6 +146,7 @@ export default function SubjectCoursePage() {
     }
   };
 
+  // Handle lesson click
   const handleLessonClick = (lesson: Lesson) => {
     setActiveLesson(lesson);
   };
