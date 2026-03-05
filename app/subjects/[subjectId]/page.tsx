@@ -1,186 +1,212 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import apiClient from "@/lib/apiClient";
-import { BookOpen, PlayCircle } from "lucide-react";
-import { getEmbedUrl } from "@/utils/video";
 
 type Lesson = {
   id: string;
   title: string;
-  videoUrl?: string;
-  video_url?: string;
-  duration?: number;
-  position?: number;
-  isPreview?: boolean;
+  videoUrl: string;
+  isPreview: boolean;
 };
 
 type Section = {
   id: string;
   title: string;
-  position?: number;
   lessons: Lesson[];
 };
 
-type SubjectTreeResponse = {
-  success?: boolean;
-  data?: {
-    id: string;
-    title: string;
-    slug?: string;
-    description?: string;
-    sections: Section[];
-  };
-};
-
-export default function SubjectCoursePage() {
+export default function CoursePage() {
   const params = useParams();
-  const subjectId = params?.subjectId as string;
+  const subjectId = params.subjectId as string;
 
-  // State management
-  const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
+  const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Flatten lessons for navigation and progress
-  const allLessons = useMemo(() => {
-    return sections
-      .slice()
-      .sort((a, b) => (a.position || 0) - (b.position || 0))
-      .flatMap((s) =>
-        (s.lessons || [])
-          .slice()
-          .sort((a, b) => (a.position || 0) - (b.position || 0))
-      );
-  }, [sections]);
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
-  // Fetch progress from backend
   useEffect(() => {
-    async function fetchProgress() {
+    async function loadCourse() {
       try {
-        const res = await apiClient.get(`/progress/subjects/${subjectId}`);
-        const completed = res.data?.data?.completed_video_ids || res.data?.completedLessons || [];
-        setCompletedLessons(completed);
-      } catch (error) {
-        console.error("Failed to fetch progress", error);
+        const res = await fetch(
+          `https://pathtopro-backend.onrender.com/api/subjects/${subjectId}/tree`,
+          { cache: "no-store" }
+        );
+
+        const json = await res.json();
+        const data = json.data;
+
+        const courseSections = data.sections || [];
+
+        setSections(courseSections);
+
+        const firstLesson = courseSections?.[0]?.lessons?.[0];
+
+        if (firstLesson) {
+          setCurrentLesson(firstLesson);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error(err);
+        setLoading(false);
       }
     }
 
-    if (subjectId) fetchProgress();
+    loadCourse();
   }, [subjectId]);
 
-  // Initialize active lesson from localStorage or auto-select first lesson
-  useEffect(() => {
-    const savedLesson = localStorage.getItem(`resume-${subjectId}`);
-    if (savedLesson) {
-      try {
-        setActiveLesson(JSON.parse(savedLesson));
-      } catch {
-        console.error('Failed to load saved lesson');
-      }
-    } else if (sections.length > 0 && !activeLesson) {
-      const first = sections
-        .slice()
-        .sort((a, b) => (a.position || 0) - (b.position || 0))
-        .flatMap((s) =>
-          (s.lessons || [])
-            .slice()
-            .sort((a, b) => (a.position || 0) - (b.position || 0))
-        )[0];
-      if (first) setActiveLesson(first);
-    }
-  }, [subjectId, sections, activeLesson]);
+  function handleLessonClick(lesson: Lesson) {
+    setCurrentLesson(lesson);
 
-  // Save resume lesson to localStorage whenever active lesson changes
-  useEffect(() => {
-    if (activeLesson) {
-      localStorage.setItem(
-        `resume-${subjectId}`,
-        JSON.stringify(activeLesson)
-      );
+    if (!completedLessons.includes(lesson.id)) {
+      setCompletedLessons((prev) => [...prev, lesson.id]);
     }
-  }, [subjectId, activeLesson]);
+  }
 
-  // Go to next lesson
-  const goToNextLesson = () => {
-    if (!activeLesson) return;
+  function getNextLesson() {
+    if (!currentLesson) return null;
 
-    const index = allLessons.findIndex((l) => l.id === activeLesson.id);
-    if (index !== -1 && index < allLessons.length - 1) {
-      setActiveLesson(allLessons[index + 1]);
-    }
-  };
+    const allLessons = sections.flatMap((s) => s.lessons);
+
+    const index = allLessons.findIndex((l) => l.id === currentLesson.id);
+
+    return allLessons[index + 1] || null;
+  }
+
+  const totalLessons = sections.reduce(
+    (acc, sec) => acc + sec.lessons.length,
+    0
+  );
+
+  const progress =
+    totalLessons === 0
+      ? 0
+      : Math.round((completedLessons.length / totalLessons) * 100);
+
+  if (loading) {
+    return <div style={{ padding: 40 }}>Loading course content...</div>;
+  }
+
+  const nextLesson = getNextLesson();
 
   return (
-    <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
-      {/* Lesson Player Content */}
-      {!activeLesson && (
-        <div className="flex items-center justify-center h-full text-gray-500">
-          <div className="text-center">
-            <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700">Select a lesson to start learning</h3>
+    <div style={{ display: "flex", height: "100vh" }}>
+      {/* Sidebar */}
+      <div
+        style={{
+          width: 320,
+          borderRight: "1px solid #ddd",
+          overflowY: "auto",
+        }}
+      >
+        <h3 style={{ padding: "16px" }}>Course Content</h3>
+
+        {/* Progress */}
+        <div style={{ padding: "12px" }}>
+          <div
+            style={{
+              height: "6px",
+              background: "#eee",
+              borderRadius: "6px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                height: "100%",
+                background: "#2563eb",
+              }}
+            />
           </div>
+
+          <p style={{ fontSize: "12px", marginTop: "4px" }}>
+            {progress}% Complete
+          </p>
         </div>
-      )}
 
-      {activeLesson && (
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {activeLesson.title}
-          </h2>
+        {/* Sections */}
+        {sections.map((section) => (
+          <div key={section.id}>
+            <h4 style={{ padding: "10px" }}>{section.title}</h4>
 
-          <div className="mb-4">
-            {activeLesson.isPreview ? (
-              <span className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+            {section.lessons.map((lesson) => (
+              <div
+                key={lesson.id}
+                onClick={() => handleLessonClick(lesson)}
+                style={{
+                  padding: "8px 12px",
+                  cursor: "pointer",
+                  background:
+                    currentLesson?.id === lesson.id
+                      ? "#f1f5f9"
+                      : "transparent",
+                }}
+              >
+                {lesson.title}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      {/* Video Area */}
+      <div style={{ flex: 1, padding: 30 }}>
+        {currentLesson && (
+          <>
+            <h2>{currentLesson.title}</h2>
+
+            {currentLesson.isPreview && (
+              <p style={{ color: "#2563eb", marginBottom: "10px" }}>
                 🔓 Free Preview Available
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                🔒 Locked Content
-              </span>
+              </p>
             )}
-          </div>
 
-          {activeLesson.videoUrl || activeLesson.video_url ? (
-            <div className="aspect-video w-full rounded overflow-hidden mb-4">
-              {(function() {
-                const videoUrl = activeLesson.videoUrl || activeLesson.video_url;
-                if (!videoUrl) return null;
-                const embedUrl = getEmbedUrl(videoUrl);
-                if (!embedUrl) return null;
-                return (
-                  <iframe
-                    src={embedUrl}
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    title={activeLesson.title}
-                  />
-                );
-              })()}
-            </div>
-          ) : (
-            <div className="p-10 border rounded-lg bg-white text-center text-gray-500">
-              <PlayCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-lg font-medium">No video available for this lesson yet.</p>
-            </div>
-          )}
+            <iframe
+              width="100%"
+              height="480"
+              src={currentLesson.videoUrl}
+              title="Lesson Video"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
 
-          {/* Navigation Buttons */}
-          <div className="mt-6 flex items-center gap-4">
-            <button
-              onClick={goToNextLesson}
-              disabled={!allLessons.find((l) => l.id === activeLesson.id) || 
-                        allLessons.indexOf(allLessons.find((l) => l.id === activeLesson.id)!) === allLessons.length - 1}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
-            >
-              Next Lesson
-              <span className="text-sm">→</span>
-            </button>
-          </div>
-        </div>
-      )}
+            {/* Next Lesson */}
+            <div style={{ marginTop: "20px" }}>
+              {nextLesson ? (
+                <button
+                  onClick={() => handleLessonClick(nextLesson)}
+                  style={{
+                    padding: "10px 16px",
+                    background: "#2563eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Next Lesson →
+                </button>
+              ) : (
+                <button
+                  disabled
+                  style={{
+                    padding: "10px 16px",
+                    background: "#ccc",
+                    border: "none",
+                    borderRadius: "6px",
+                  }}
+                >
+                  Course Complete
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
