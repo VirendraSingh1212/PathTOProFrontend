@@ -39,27 +39,42 @@ export default function CoursePage() {
   const [sections, setSections] = useState<Section[]>([]);
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadCourse() {
-      const res = await fetch(
-        `https://pathtopro-backend.onrender.com/api/subjects/${subjectId}/tree`,
-        { cache: "no-store" }
-      );
+      try {
+        console.log('Fetching course tree for subject:', subjectId);
+        const res = await fetch(
+          `https://pathtopro-backend.onrender.com/api/subjects/${subjectId}/tree`,
+          { cache: "no-store" }
+        );
 
-      const json = await res.json();
+        console.log('Response status:', res.status);
 
-      const courseSections = json.data.sections || [];
+        if (!res.ok) {
+          throw new Error(`Failed to load course: ${res.status}`);
+        }
 
-      setSections(courseSections);
+        const json = await res.json();
+        console.log('Course data:', json);
 
-      const firstLesson = courseSections?.[0]?.lessons?.[0];
+        const courseSections = json.data?.sections || [];
 
-      if (firstLesson) {
-        setCurrentLesson(firstLesson);
+        setSections(courseSections);
+
+        const firstLesson = courseSections?.[0]?.lessons?.[0];
+
+        if (firstLesson) {
+          setCurrentLesson(firstLesson);
+        }
+
+        setLoading(false);
+      } catch (err) {
+        console.error('Error loading course:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load course');
+        setLoading(false);
       }
-
-      setLoading(false);
     }
 
     loadCourse();
@@ -67,6 +82,26 @@ export default function CoursePage() {
 
   if (loading) {
     return <div style={{ padding: 40 }}>Loading course...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: 40 }}>
+        <h2 style={{ color: '#dc2626', marginBottom: '10px' }}>Error Loading Course</h2>
+        <p style={{ color: '#666' }}>{error}</p>
+        <p style={{ marginTop: '10px', fontSize: '14px' }}>Subject ID: {subjectId}</p>
+      </div>
+    );
+  }
+
+  if (!sections || sections.length === 0) {
+    return (
+      <div style={{ padding: 40, textAlign: 'center' }}>
+        <h2 style={{ marginBottom: '10px' }}>No Course Content Available</h2>
+        <p style={{ color: '#666' }}>This subject doesn't have any lessons yet.</p>
+        <p style={{ marginTop: '10px', fontSize: '14px' }}>Subject ID: {subjectId}</p>
+      </div>
+    );
   }
 
   return (
