@@ -24,125 +24,65 @@ export default function CoursePage() {
   const [currentLesson, setCurrentLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
-
   useEffect(() => {
     async function loadCourse() {
-      try {
-        const res = await fetch(
-          `https://pathtopro-backend.onrender.com/api/subjects/${subjectId}/tree`,
-          { cache: "no-store" }
-        );
+      const res = await fetch(
+        `https://pathtopro-backend.onrender.com/api/subjects/${subjectId}/tree`,
+        { cache: "no-store" }
+      );
 
-        const json = await res.json();
-        const data = json.data;
+      const json = await res.json();
 
-        const courseSections = data.sections || [];
+      const courseSections = json.data.sections || [];
 
-        setSections(courseSections);
+      setSections(courseSections);
 
-        const firstLesson = courseSections?.[0]?.lessons?.[0];
+      const firstLesson = courseSections?.[0]?.lessons?.[0];
 
-        if (firstLesson) {
-          setCurrentLesson(firstLesson);
-        }
-
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        setLoading(false);
+      if (firstLesson) {
+        setCurrentLesson(firstLesson);
       }
+
+      setLoading(false);
     }
 
     loadCourse();
   }, [subjectId]);
 
-  function handleLessonClick(lesson: Lesson) {
-    setCurrentLesson(lesson);
-
-    if (!completedLessons.includes(lesson.id)) {
-      setCompletedLessons((prev) => [...prev, lesson.id]);
-    }
-  }
-
-  function getNextLesson() {
-    if (!currentLesson) return null;
-
-    const allLessons = sections.flatMap((s) => s.lessons);
-
-    const index = allLessons.findIndex((l) => l.id === currentLesson.id);
-
-    return allLessons[index + 1] || null;
-  }
-
-  const totalLessons = sections.reduce(
-    (acc, sec) => acc + sec.lessons.length,
-    0
-  );
-
-  const progress =
-    totalLessons === 0
-      ? 0
-      : Math.round((completedLessons.length / totalLessons) * 100);
-
   if (loading) {
-    return <div style={{ padding: 40 }}>Loading course content...</div>;
+    return <div style={{ padding: 40 }}>Loading course...</div>;
   }
-
-  const nextLesson = getNextLesson();
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
       {/* Sidebar */}
       <div
         style={{
-          width: 320,
-          borderRight: "1px solid #ddd",
+          width: "320px",
+          borderRight: "1px solid #e5e7eb",
           overflowY: "auto",
+          padding: "20px",
         }}
       >
-        <h3 style={{ padding: "16px" }}>Course Content</h3>
+        <h3 style={{ marginBottom: "16px" }}>Course Content</h3>
 
-        {/* Progress */}
-        <div style={{ padding: "12px" }}>
-          <div
-            style={{
-              height: "6px",
-              background: "#eee",
-              borderRadius: "6px",
-              overflow: "hidden",
-            }}
-          >
-            <div
-              style={{
-                width: `${progress}%`,
-                height: "100%",
-                background: "#2563eb",
-              }}
-            />
-          </div>
-
-          <p style={{ fontSize: "12px", marginTop: "4px" }}>
-            {progress}% Complete
-          </p>
-        </div>
-
-        {/* Sections */}
         {sections.map((section) => (
           <div key={section.id}>
-            <h4 style={{ padding: "10px" }}>{section.title}</h4>
+            <h4 style={{ marginTop: "16px", fontWeight: "600" }}>
+              {section.title}
+            </h4>
 
             {section.lessons.map((lesson) => (
               <div
                 key={lesson.id}
-                onClick={() => handleLessonClick(lesson)}
+                onClick={() => setCurrentLesson(lesson)}
                 style={{
-                  padding: "8px 12px",
+                  padding: "8px 0",
                   cursor: "pointer",
-                  background:
+                  color:
                     currentLesson?.id === lesson.id
-                      ? "#f1f5f9"
-                      : "transparent",
+                      ? "#2563eb"
+                      : "#374151",
                 }}
               >
                 {lesson.title}
@@ -153,15 +93,20 @@ export default function CoursePage() {
       </div>
 
       {/* Video Area */}
-      <div style={{ flex: 1, padding: 30 }}>
+      <div style={{ flex: 1, padding: "30px" }}>
         {currentLesson && (
           <>
-            <h2>{currentLesson.title}</h2>
+            <h2 style={{ marginBottom: "10px" }}>{currentLesson.title}</h2>
 
             {currentLesson.isPreview && (
-              <p style={{ color: "#2563eb", marginBottom: "10px" }}>
+              <div
+                style={{
+                  color: "#2563eb",
+                  marginBottom: "10px",
+                }}
+              >
                 🔓 Free Preview Available
-              </p>
+              </div>
             )}
 
             <iframe
@@ -170,40 +115,22 @@ export default function CoursePage() {
               src={currentLesson.videoUrl}
               title="Lesson Video"
               frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />
 
-            {/* Next Lesson */}
-            <div style={{ marginTop: "20px" }}>
-              {nextLesson ? (
-                <button
-                  onClick={() => handleLessonClick(nextLesson)}
-                  style={{
-                    padding: "10px 16px",
-                    background: "#2563eb",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Next Lesson →
-                </button>
-              ) : (
-                <button
-                  disabled
-                  style={{
-                    padding: "10px 16px",
-                    background: "#ccc",
-                    border: "none",
-                    borderRadius: "6px",
-                  }}
-                >
-                  Course Complete
-                </button>
-              )}
-            </div>
+            <button
+              style={{
+                marginTop: "20px",
+                padding: "10px 16px",
+                background: "#2563eb",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer",
+              }}
+            >
+              Next Lesson →
+            </button>
           </>
         )}
       </div>
