@@ -181,143 +181,74 @@ export default function SubjectCoursePage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-white overflow-hidden">
-      {/* Sidebar */} 
-      <div className="w-80 border-r overflow-y-auto p-4 bg-white">
-        <h2 className="font-bold text-lg mb-4 tracking-tight text-gray-900">Course Content</h2>
-
-        {/* Progress Bar */}
-        {allLessons.length > 0 && (
-          <div className="mb-6">
-            <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
-              <div
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-            <p className="text-xs text-gray-600 mt-2 font-medium">
-              {progressPercentage}% Complete ({completedLessons.length}/{allLessons.length})
-            </p>
+    <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
+      {/* Lesson Player Content */}
+      {!activeLesson && (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="text-center">
+            <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700">Select a lesson to start learning</h3>
           </div>
-        )}
+        </div>
+      )}
 
-        {sections.map((section) => (
-          <div key={section.id} className="mb-6">
-            <h3 className="font-semibold text-base mb-3 flex items-center gap-2 text-gray-800">
-              <PlayCircle className="h-4 w-4 text-blue-600" />
-              {section.title}
-            </h3>
+      {activeLesson && (
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {activeLesson.title}
+          </h2>
 
-            <ul className="space-y-2">
-              {section.lessons?.map((lesson) => {
-                const active = activeLesson?.id === lesson.id;
-                const completed = completedLessons.includes(lesson.id);
-
-                return (
-                  <li
-                    key={lesson.id}
-                    onClick={() => handleLessonClick(lesson)}
-                    className={`flex justify-between items-center text-sm cursor-pointer p-2 rounded transition-colors ${
-                      active
-                        ? "bg-blue-50 text-blue-600 font-medium"
-                        : completed
-                        ? "bg-green-50 text-green-700"
-                        : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      {completed ? (
-                        <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      ) : (
-                        <span className="text-base flex-shrink-0">
-                          {lesson.isPreview ? "🔓" : "🔒"}
-                        </span>
-                      )}
-                      <span className="flex-1">{lesson.title}</span>
-                    </span>
-
-                    {lesson.isPreview && !completed && (
-                      <span className="text-xs text-blue-600 font-medium">
-                        Free Preview
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      {/* Lesson Player */}
-      <div className="flex-1 p-8 overflow-y-auto bg-gray-50">
-        {!activeLesson && (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <div className="text-center">
-              <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700">Select a lesson to start learning</h3>
-            </div>
-          </div>
-        )}
-
-        {activeLesson && (
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {activeLesson.title}
-            </h2>
-
-            <div className="mb-4">
-              {activeLesson.isPreview ? (
-                <span className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
-                  🔓 Free Preview Available
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                  🔒 Locked Content
-                </span>
-              )}
-            </div>
-
-            {activeLesson.videoUrl || activeLesson.video_url ? (
-              <div className="aspect-video w-full rounded overflow-hidden mb-4">
-                {(function() {
-                  const videoUrl = activeLesson.videoUrl || activeLesson.video_url;
-                  if (!videoUrl) return null;
-                  const embedUrl = getEmbedUrl(videoUrl);
-                  if (!embedUrl) return null;
-                  return (
-                    <iframe
-                      src={embedUrl}
-                      className="w-full h-full"
-                      allowFullScreen
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      title={activeLesson.title}
-                    />
-                  );
-                })()}
-              </div>
+          <div className="mb-4">
+            {activeLesson.isPreview ? (
+              <span className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+                🔓 Free Preview Available
+              </span>
             ) : (
-              <div className="p-10 border rounded-lg bg-white text-center text-gray-500">
-                <PlayCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-lg font-medium">No video available for this lesson yet.</p>
-              </div>
+              <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                🔒 Locked Content
+              </span>
             )}
-
-            {/* Navigation Buttons */}
-            <div className="mt-6 flex items-center gap-4">
-              <button
-                onClick={goToNextLesson}
-                disabled={!allLessons.find((l) => l.id === activeLesson.id) || 
-                          allLessons.indexOf(allLessons.find((l) => l.id === activeLesson.id)!) === allLessons.length - 1}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                Next Lesson
-                <span className="text-sm">→</span>
-              </button>
-            </div>
           </div>
-        )}
-      </div>
+
+          {activeLesson.videoUrl || activeLesson.video_url ? (
+            <div className="aspect-video w-full rounded overflow-hidden mb-4">
+              {(function() {
+                const videoUrl = activeLesson.videoUrl || activeLesson.video_url;
+                if (!videoUrl) return null;
+                const embedUrl = getEmbedUrl(videoUrl);
+                if (!embedUrl) return null;
+                return (
+                  <iframe
+                    src={embedUrl}
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    title={activeLesson.title}
+                  />
+                );
+              })()}
+            </div>
+          ) : (
+            <div className="p-10 border rounded-lg bg-white text-center text-gray-500">
+              <PlayCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-lg font-medium">No video available for this lesson yet.</p>
+            </div>
+          )}
+
+          {/* Navigation Buttons */}
+          <div className="mt-6 flex items-center gap-4">
+            <button
+              onClick={goToNextLesson}
+              disabled={!allLessons.find((l) => l.id === activeLesson.id) || 
+                        allLessons.indexOf(allLessons.find((l) => l.id === activeLesson.id)!) === allLessons.length - 1}
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2"
+            >
+              Next Lesson
+              <span className="text-sm">→</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
