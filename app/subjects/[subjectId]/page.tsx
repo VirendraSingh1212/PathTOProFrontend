@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { BookOpen, PlayCircle, CheckCircle } from "lucide-react";
+import { getEmbedUrl } from "@/utils/video";
 
 type Lesson = {
   id: string;
@@ -301,16 +302,22 @@ export default function SubjectCoursePage() {
             </div>
 
             {activeLesson.videoUrl || activeLesson.video_url ? (
-              <div className="aspect-video w-full mb-4 rounded-lg overflow-hidden shadow-lg border">
-                <iframe
-                  src={activeLesson.videoUrl || activeLesson.video_url}
-                  className="w-full h-full"
-                  allowFullScreen
-                  onLoad={() =>
-                    markLessonComplete(activeLesson.id)
-                  }
-                  title={activeLesson.title}
-                />
+              <div className="aspect-video w-full rounded overflow-hidden mb-4">
+                {(function() {
+                  const videoUrl = activeLesson.videoUrl || activeLesson.video_url;
+                  if (!videoUrl) return null;
+                  const embedUrl = getEmbedUrl(videoUrl);
+                  if (!embedUrl) return null;
+                  return (
+                    <iframe
+                      src={embedUrl}
+                      className="w-full h-full"
+                      allowFullScreen
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      title={activeLesson.title}
+                    />
+                  );
+                })()}
               </div>
             ) : (
               <div className="p-10 border rounded-lg bg-white text-center text-gray-500">
