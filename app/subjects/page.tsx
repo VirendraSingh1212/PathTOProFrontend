@@ -1,118 +1,74 @@
-'use client';
+/* app/subjects/page.tsx */
 
-import { useEffect, useState } from 'react';
-import axios from 'axios';
-import Image from 'next/image';
-import Link from 'next/link';
-import apiClient from '@/lib/apiClient';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Spinner } from '@/components/common/Spinner';
-import { BookOpen, ChevronRight } from 'lucide-react';
-
-interface Subject {
-    id: string;
-    title: string;
-    description: string;
-    thumbnail_url?: string;
-}
-
-interface SubjectsResponse {
-    success: boolean;
-    data: Subject[];
-}
+const subjects = [
+  {
+    id: "fullstack",
+    title: "Full-Stack Development Masterclass",
+    description:
+      "Complete development roadmap covering frontend, backend, databases, and deployment.",
+    image:
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    link: "/subjects/fullstack"
+  },
+  {
+    id: "systemdesign",
+    title: "System Design Fundamentals",
+    description:
+      "Learn to design scalable distributed systems with real-world examples.",
+    image:
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31",
+    link: "/subjects/systemdesign"
+  },
+  {
+    id: "dsa",
+    title: "Data Structures & Algorithms",
+    description:
+      "Master DSA concepts essential for technical interviews and problem-solving.",
+    image:
+      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4",
+    link: "/subjects/dsa"
+  }
+];
 
 export default function SubjectsPage() {
-    const [subjects, setSubjects] = useState<Subject[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="max-w-6xl mx-auto p-8">
+      <h1 className="text-3xl font-bold mb-2">Your Subjects</h1>
+      <p className="text-gray-500 mb-8">
+        Select a subject to continue learning.
+      </p>
 
-    useEffect(() => {
-        const fetchSubjects = async () => {
-            try {
-                setLoading(true);
-                const res = await apiClient.get<SubjectsResponse>('/subjects');
-                // Backend returns { success: true, data: [...] }
-                setSubjects(res.data.data ?? []);
-            } catch (err: unknown) {
-                if (axios.isAxiosError(err)) {
-                    setError(err.response?.data?.message || 'Failed to load subjects');
-                } else {
-                    setError('An unexpected error occurred');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-        fetchSubjects();
-    }, []);
+      <div className="grid grid-cols-3 gap-6">
+        {subjects.map((subject) => (
+          <div
+            key={subject.id}
+            className="border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
+          >
+            <img
+              src={subject.image}
+              alt={subject.title}
+              className="w-full h-40 object-cover"
+            />
 
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-[50vh]">
-                <Spinner />
+            <div className="p-5">
+              <h2 className="font-semibold text-lg mb-2">
+                {subject.title}
+              </h2>
+
+              <p className="text-gray-500 text-sm mb-4">
+                {subject.description}
+              </p>
+
+              <a
+                href={subject.link}
+                className="text-blue-600 font-medium hover:underline"
+              >
+                Continue Learning →
+              </a>
             </div>
-        );
-    }
-
-    if (error) {
-        return (
-            <div className="p-8 text-center text-red-500">
-                <p>{error}</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Your Subjects</h1>
-                <p className="text-gray-500 mt-2">Select a subject to continue learning.</p>
-            </div>
-
-            {(!Array.isArray(subjects) || subjects.length === 0) ? (
-                <div className="text-center py-12 border rounded-lg bg-white">
-                    <BookOpen className="mx-auto h-12 w-12 text-gray-300" />
-                    <h3 className="mt-2 text-sm font-semibold text-gray-900">No subjects</h3>
-                    <p className="mt-1 text-sm text-gray-500">You are not enrolled in any subjects yet.</p>
-                </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array.isArray(subjects) && subjects.map((subject) => (
-                        <Link key={subject.id} href={`/subjects/${subject.id}`}>
-                            <Card className="h-full hover:shadow-lg transition-all duration-200 cursor-pointer overflow-hidden border border-gray-100 shadow-sm bg-white/70 backdrop-blur-md hover:translate-y-[-2px]">
-                                {subject.thumbnail_url && (
-                                    <div className="w-full h-40 bg-gray-200 overflow-hidden">
-                                        <Image
-                                            src={subject.thumbnail_url}
-                                            alt={subject.title}
-                                            fill
-                                            className="object-cover"
-                                            unoptimized
-                                        />
-                                    </div>
-                                )}
-                                {!subject.thumbnail_url && (
-                                    <div className="w-full h-32 bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
-                                        <BookOpen className="h-10 w-10 text-blue-200" />
-                                    </div>
-                                )}
-                                <CardHeader>
-                                    <CardTitle className="text-xl">{subject.title}</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <CardDescription className="line-clamp-2 text-gray-600">
-                                        {subject.description}
-                                    </CardDescription>
-                                    <div className="mt-4 flex items-center text-blue-600 text-sm font-medium">
-                                        Continue Learning
-                                        <ChevronRight className="ml-1 h-4 w-4" />
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        </Link>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
