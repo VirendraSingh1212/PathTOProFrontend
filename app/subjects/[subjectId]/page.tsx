@@ -1,55 +1,115 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import apiClient from "@/lib/apiClient";
 import { BookOpen, PlayCircle } from "lucide-react";
 
-interface Lesson {
+type Lesson = {
   id: string;
   title: string;
-  isPreview?: boolean;
-  video_url?: string;
   videoUrl?: string;
-}
+  video_url?: string;
+  duration?: number;
+  position?: number;
+  isPreview?: boolean;
+};
 
-interface Section {
+type Section = {
   id: string;
   title: string;
+  position?: number;
   lessons: Lesson[];
-}
+};
 
-export default function SubjectPage() {
+type SubjectTreeResponse = {
+  success?: boolean;
+  data?: {
+    id: string;
+    title: string;
+    slug?: string;
+    description?: string;
+    sections: Section[];
+  };
+};
+
+export default function SubjectCoursePage() {
   const params = useParams();
-  const subjectId = params.subjectId as string;
-  const [sections, setSections] = useState<Section[]>([]);
+  const subjectId = params?.subjectId as string;
+
   const [loading, setLoading] = useState(true);
+  const [sections, setSections] = useState<Section[]>([]);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadSubjectTree() {
       try {
         setLoading(true);
-        const response = await apiClient.get(`/subjects/${subjectId}/tree`);
-        const sectionsData = response.data?.data?.sections || response.data || [];
-        setSections(sectionsData);
-      } catch (error) {
-        console.error("Failed to load subject tree:", error);
-        setSections([]);
+        setError(null);
+
+        const res = await apiClient.get<SubjectTreeResponse>(
+          `/subjects/${subjectId}/tree`
+        );
+
+        const data = res?.data?.data;
+        const fetchedSections = data?.sections || [];
+
+        setSections(fetchedSections);
+
+        // Auto-select first lesson if none selected
+        if (fetchedSections.length > 0) {
+          const first = fetchedSections
+            .slice()
+            .sort((a, b) => (a.position || 0) - (b.position || 0))
+            .flatMap((s) =>
+              (s.lessons || [])
+                .slice()
+                .sort((a, b) => (a.position || 0) - (b.position || 0))
+            )[0];
+
+          if (first) setActiveLesson(first);
+        }
+      } catch (err) {
+        console.error("Failed to load subject tree:", err);
+        setError("Failed to load course content.");
       } finally {
         setLoading(false);
       }
     }
 
-    if (subjectId) {
-      loadSubjectTree();
-    }
+    if (subjectId) loadSubjectTree();
   }, [subjectId]);
+
+  // Placeholder for future backend integration
+  const markLessonComplete = async (lessonId: string) => {
+    try {
+      // later connect to:
+      // POST /api/progress
+      // await apiClient.post("/progress", { lessonId });
+
+      console.log("Lesson completed:", lessonId);
+    } catch (err) {
+      console.error("Progress update failed", err);
+    }
+  };
+
+  const handleLessonClick = (lesson: Lesson) => {
+    setActiveLesson(lesson);
+  };
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <p className="text-gray-500">Loading content...</p>
+      <div className="p-10 text-gray-500 flex items-center justify-center">
+        Loading course content...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-10 text-red-500 text-center">
+        {error}
       </div>
     );
   }
@@ -67,110 +127,104 @@ export default function SubjectPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-      {/* Sidebar - Course Content */}
-      <div className="w-80 flex-shrink-0 border-r bg-white overflow-y-auto">
-        <div className="p-4">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Course Content</h2>
-          
-          {sections.map((section) => (
-            <div key={section.id} className="mb-6">
-              <h3 className="font-semibold text-base text-gray-800 mb-3 flex items-center gap-2">
-                <PlayCircle className="h-4 w-4 text-blue-600" />
-                {section.title}
-              </h3>
+    <div className="flex h-[calc(100vh-4rem)] bg-white overflow-hidden">
+      {/* Sidebar */} 
+      <div className="w-80 border-r overflow-y-auto p-4 bg-white">
+        <h2 className="font-bold text-lg mb-4 tracking-tight text-gray-900">Course Content</h2>
 
-              <ul className="space-y-2">
-                {section.lessons && section.lessons.map((lesson) => (
+        {sections.length === 0 && (
+          <div className="text-sm text-gray-500">
+            No content available.
+          </div>
+        )}
+
+        {sections.map((section) => (
+          <div key={section.id} className="mb-6">
+            <h3 className="font-semibold text-base mb-3 flex items-center gap-2 text-gray-800">
+              <PlayCircle className="h-4 w-4 text-blue-600" />
+              {section.title}
+            </h3>
+
+            <ul className="space-y-2">
+              {section.lessons?.map((lesson) => {
+                const active = activeLesson?.id === lesson.id;
+
+                return (
                   <li
                     key={lesson.id}
-                    onClick={() => setActiveLesson(lesson)}
-                    className={`cursor-pointer text-sm p-2 rounded-md transition-colors ${
-                      activeLesson?.id === lesson.id
+                    onClick={() => handleLessonClick(lesson)}
+                    className={`flex justify-between items-center text-sm cursor-pointer p-2 rounded transition-colors ${
+                      active
                         ? "bg-blue-50 text-blue-600 font-medium"
                         : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">
-                        {lesson.isPreview ? "🔓" : "🔒"}
+                    <span className="flex items-center gap-2">
+                      {lesson.isPreview ? "🔓" : "🔒"} {lesson.title}
+                    </span>
+
+                    {lesson.isPreview && (
+                      <span className="text-xs text-blue-600 font-medium">
+                        Free Preview
                       </span>
-                      <span className="flex-1">{lesson.title}</span>
-                      {lesson.isPreview && (
-                        <span className="text-xs text-blue-600 font-medium ml-auto">
-                          Free Preview
-                        </span>
-                      )}
-                    </div>
+                    )}
                   </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </div>
 
-      {/* Main Content - Lesson Player */}
-      <div className="flex-1 overflow-y-auto bg-gray-50">
-        <div className="p-8">
-          {activeLesson ? (
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                {activeLesson.title}
-              </h1>
-              <p className="text-sm text-gray-500 mb-6">
-                {activeLesson.isPreview ? (
-                  <span className="inline-flex items-center gap-1 text-blue-600 font-medium">
-                    🔓 Free Preview Available
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-gray-500">
-                    🔒 Locked Content
-                  </span>
-                )}
-              </p>
-
-              <div className="aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-                {activeLesson.videoUrl || activeLesson.video_url ? (
-                  <iframe
-                    className="w-full h-full min-h-[450px]"
-                    src={activeLesson.videoUrl || activeLesson.video_url}
-                    title={activeLesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full min-h-[450px] text-white">
-                    <div className="text-center">
-                      <PlayCircle className="h-16 w-16 mx-auto mb-4 text-gray-400" />
-                      <p className="text-lg font-medium">Video not available</p>
-                      <p className="text-sm text-gray-400 mt-2">This lesson doesn&apos;t have a video yet</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 flex items-center gap-4">
-                <button
-                  onClick={() => setActiveLesson(null)}
-                  className="text-sm text-gray-600 hover:text-gray-900 font-medium"
-                >
-                  ← Back to lessons
-                </button>
-              </div>
+      {/* Lesson Player */}
+      <div className="flex-1 p-8 overflow-y-auto bg-gray-50">
+        {!activeLesson && (
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="text-center">
+              <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700">Select a lesson to start learning</h3>
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-              <BookOpen className="h-20 w-20 text-gray-300 mb-6" />
-              <h2 className="text-2xl font-semibold text-gray-700 mb-2">
-                Select a Lesson to Start Learning
-              </h2>
-              <p className="text-gray-500 max-w-md">
-                Choose a lesson from the sidebar to begin watching the video and learning about {subjectId}.
-              </p>
+          </div>
+        )}
+
+        {activeLesson && (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {activeLesson.title}
+            </h2>
+
+            <div className="mb-4">
+              {activeLesson.isPreview ? (
+                <span className="inline-flex items-center gap-1 text-sm text-blue-600 font-medium bg-blue-50 px-3 py-1 rounded-full">
+                  🔓 Free Preview Available
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+                  🔒 Locked Content
+                </span>
+              )}
             </div>
-          )}
-        </div>
+
+            {activeLesson.videoUrl || activeLesson.video_url ? (
+              <div className="aspect-video w-full mb-4 rounded-lg overflow-hidden shadow-lg border">
+                <iframe
+                  src={activeLesson.videoUrl || activeLesson.video_url}
+                  className="w-full h-full"
+                  allowFullScreen
+                  onLoad={() =>
+                    markLessonComplete(activeLesson.id)
+                  }
+                  title={activeLesson.title}
+                />
+              </div>
+            ) : (
+              <div className="p-10 border rounded-lg bg-white text-center text-gray-500">
+                <PlayCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg font-medium">No video available for this lesson yet.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
