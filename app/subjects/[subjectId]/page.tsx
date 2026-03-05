@@ -109,7 +109,7 @@ export default function SubjectCoursePage() {
     }
 
     if (subjectId) loadSubjectTree();
-  }, [subjectId]);
+  }, [subjectId, activeLesson]);
 
   // Fetch progress from backend
   useEffect(() => {
