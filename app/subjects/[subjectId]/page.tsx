@@ -39,11 +39,9 @@ export default function SubjectCoursePage() {
   const subjectId = params?.subjectId as string;
 
   // State management
-  const [loading, setLoading] = useState(true);
-  const [sections, setSections] = useState<Section[]>([]);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [sections, setSections] = useState<Section[]>([]);
 
   // Flatten lessons for navigation and progress
   const allLessons = useMemo(() => {
@@ -56,55 +54,6 @@ export default function SubjectCoursePage() {
           .sort((a, b) => (a.position || 0) - (b.position || 0))
       );
   }, [sections]);
-
-  useEffect(() => {
-    async function loadSubjectTree() {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const res = await apiClient.get<SubjectTreeResponse>(
-          `/subjects/${subjectId}/tree`
-        );
-
-        const data = res?.data?.data;
-        const fetchedSections = data?.sections || [];
-
-        setSections(fetchedSections);
-
-        // Load saved progress from localStorage
-        const savedLesson = localStorage.getItem(`resume-${subjectId}`);
-        if (savedLesson) {
-          try {
-            setActiveLesson(JSON.parse(savedLesson));
-          } catch {
-            console.error('Failed to load saved lesson');
-          }
-        }
-
-        // Auto-select first lesson if no saved lesson
-        if (!activeLesson && fetchedSections.length > 0) {
-          const first = fetchedSections
-            .slice()
-            .sort((a, b) => (a.position || 0) - (b.position || 0))
-            .flatMap((s) =>
-              (s.lessons || [])
-                .slice()
-                .sort((a, b) => (a.position || 0) - (b.position || 0))
-            )[0];
-
-          if (first) setActiveLesson(first);
-        }
-      } catch (err) {
-        console.error("Failed to load subject tree:", err);
-        setError("Failed to load course content.");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    if (subjectId) loadSubjectTree();
-  }, [subjectId, activeLesson]);
 
   // Fetch progress from backend
   useEffect(() => {
@@ -120,6 +69,28 @@ export default function SubjectCoursePage() {
 
     if (subjectId) fetchProgress();
   }, [subjectId]);
+
+  // Initialize active lesson from localStorage or auto-select first lesson
+  useEffect(() => {
+    const savedLesson = localStorage.getItem(`resume-${subjectId}`);
+    if (savedLesson) {
+      try {
+        setActiveLesson(JSON.parse(savedLesson));
+      } catch {
+        console.error('Failed to load saved lesson');
+      }
+    } else if (sections.length > 0 && !activeLesson) {
+      const first = sections
+        .slice()
+        .sort((a, b) => (a.position || 0) - (b.position || 0))
+        .flatMap((s) =>
+          (s.lessons || [])
+            .slice()
+            .sort((a, b) => (a.position || 0) - (b.position || 0))
+        )[0];
+      if (first) setActiveLesson(first);
+    }
+  }, [subjectId, sections, activeLesson]);
 
   // Save resume lesson to localStorage whenever active lesson changes
   useEffect(() => {
@@ -140,34 +111,6 @@ export default function SubjectCoursePage() {
       setActiveLesson(allLessons[index + 1]);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="p-10 text-gray-500 flex items-center justify-center">
-        Loading course content...
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-10 text-red-500 text-center">
-        {error}
-      </div>
-    );
-  }
-
-  if (sections.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] text-center">
-        <BookOpen className="h-16 w-16 text-gray-300 mb-4" />
-        <h2 className="text-xl font-semibold text-gray-700">No Content Available</h2>
-        <p className="text-gray-500 mt-2 max-w-md">
-          Lessons for this subject have not been added yet. Check back later!
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 overflow-y-auto bg-gray-50 p-8">
