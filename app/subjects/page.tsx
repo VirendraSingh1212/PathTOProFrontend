@@ -23,18 +23,18 @@ export default function SubjectsPage() {
         setLoading(true);
         // Use the correct env variable name
         const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://pathtopro-backend.onrender.com/api';
-        
+
         console.log('Fetching subjects from:', `${apiUrl}/subjects`);
-        
+
         const res = await fetch(`${apiUrl}/subjects`);
-        
+
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        
+
         const data = await res.json();
         console.log('Subjects response:', data);
-        
+
         // Handle different response formats
         const subjectData = data.data || data.subjects || data || [];
         setSubjects(Array.isArray(subjectData) ? subjectData : []);
@@ -126,57 +126,59 @@ export default function SubjectsPage() {
               {subjects.map((subject) => (
                 <div
                   key={subject.id}
-                  className="bg-white rounded-xl shadow-sm border hover:shadow-lg transition transform hover:-translate-y-1 overflow-hidden"
+                  className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group"
                 >
                   {/* Cover Image */}
-                  <img
-                    src={
-                      SUBJECT_COVERS[subject.title] ??
-                      subject.thumbnail_url ??
-                      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3"
-                    }
-                    alt={subject.title}
-                    className="w-full h-40 object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3";
-                    }}
-                  />
+                  <div className="relative h-44 w-full overflow-hidden">
+                    <img
+                      src={
+                        SUBJECT_COVERS[subject.title] ??
+                        subject.thumbnail_url ??
+                        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3"
+                      }
+                      alt={subject.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors" />
+                  </div>
 
                   {/* Content */}
-                  <div className="p-5">
-
-                    <h2 className="text-lg font-semibold text-gray-800">
+                  <div className="p-6 flex flex-col flex-1">
+                    <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
                       {subject.title}
                     </h2>
 
-                    <p className="text-sm text-gray-500 mt-2">
+                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">
                       {subject.description}
                     </p>
 
-                    {/* Progress Bar */}
-                    <div className="mt-4">
-
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{
-                            width: `${subject.progressPercent ?? 0}%`,
-                          }}
-                        />
+                    <div className="mt-auto pt-6">
+                      {/* Progress Bar */}
+                      <div className="space-y-2 mb-6">
+                        <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-gray-400">
+                          <span>Progress</span>
+                          <span className="text-blue-600">{subject.progressPercent ?? 0}%</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                          <div
+                            className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                            style={{
+                              width: `${subject.progressPercent ?? 0}%`,
+                            }}
+                          />
+                        </div>
                       </div>
 
-                      <p className="text-xs text-gray-500 mt-1">
-                        {subject.progressPercent ?? 0}% completed
-                      </p>
+                      <Link
+                        href={`/subjects/${subject.id}`}
+                        className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm group-hover:shadow-md"
+                      >
+                        Continue Learning
+                      </Link>
                     </div>
-
-                    {/* Button */}
-                    <Link
-                      href={`/subjects/${subject.id}`}
-                      className="inline-block mt-4 text-blue-600 font-medium hover:underline"
-                    >
-                      Continue Learning →
-                    </Link>
                   </div>
                 </div>
               ))}

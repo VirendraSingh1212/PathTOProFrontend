@@ -144,35 +144,42 @@ export default function LMSChatbot() {
     pushMessage({ id: uid(), sender: "bot", text: "Done — taking you there now." });
   }
 
-  function handleSend() {
+  async function sendToBackend(text: string) {
+    setIsTyping(true);
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+      const res = await fetch(`${apiBase}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+
+      const data = await res.json();
+      const reply: string =
+        data?.data?.reply ||
+        (res.ok
+          ? "I'm not sure how to answer that. Try asking about courses or lessons!"
+          : "The assistant is temporarily unavailable. Please try again shortly.");
+
+      pushMessage({ id: uid(), sender: "bot", text: reply });
+    } catch {
+      pushMessage({
+        id: uid(),
+        sender: "bot",
+        text: "Something went wrong while contacting the AI. Please check your connection and try again.",
+      });
+    } finally {
+      setIsTyping(false);
+    }
+  }
+
+  async function handleSend() {
     const text = input.trim();
     if (!text || isTyping) return;
 
-    const userMsg: Message = { id: uid(), sender: "user", text };
-    pushMessage(userMsg);
+    pushMessage({ id: uid(), sender: "user", text });
     setInput("");
-    setIsTyping(true);
-
-    const intent = detectIntent(text);
-
-    setTimeout(() => {
-      if (intent) {
-        pushMessage({
-          id: uid(),
-          sender: "bot",
-          text: intent.response,
-          actions: intent.actions?.map((a) => ({ ...a })),
-        });
-      } else {
-        pushMessage({
-          id: uid(),
-          sender: "bot",
-          text: "I didn't fully understand. Try: 'show courses', 'how to mark complete', or 'resume learning'.",
-          actions: [{ id: "go_subjects", label: "Show Courses →", action: "subjects" }],
-        });
-      }
-      setIsTyping(false);
-    }, 500);
+    await sendToBackend(text);
   }
 
   const QUICK_PROMPTS = [
@@ -271,33 +278,12 @@ export default function LMSChatbot() {
                       <button
                         key={q}
                         onClick={() => {
-                          setInput(q);
-                          setTimeout(() => {
-                            const text = q.trim();
-                            if (!text) return;
-                            pushMessage({ id: uid(), sender: "user", text });
-                            setIsTyping(true);
-                            const intent = detectIntent(text);
-                            setTimeout(() => {
-                              if (intent) {
-                                pushMessage({
-                                  id: uid(),
-                                  sender: "bot",
-                                  text: intent.response,
-                                  actions: intent.actions?.map((a) => ({ ...a })),
-                                });
-                              } else {
-                                pushMessage({
-                                  id: uid(),
-                                  sender: "bot",
-                                  text: "I didn't fully understand. Try: 'show courses', 'how to mark complete', or 'resume learning'.",
-                                  actions: [{ id: "go_subjects", label: "Show Courses →", action: "subjects" }],
-                                });
-                              }
-                              setIsTyping(false);
-                              setInput("");
-                            }, 500);
-                          }, 0);
+                          if (isTyping) return;
+                          const text = q.trim();
+                          if (!text) return;
+                          pushMessage({ id: uid(), sender: "user", text });
+                          setInput("");
+                          sendToBackend(text);
                         }}
                         className="px-4 py-2 rounded-full text-sm border hover:bg-white/5 transition-colors"
                         style={{ borderColor: "#292929", color: "#d4d4d4" }}
