@@ -21,9 +21,9 @@ export default function SubjectsPage() {
     async function fetchSubjects() {
       try {
         setLoading(true);
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL
-          ? `${process.env.NEXT_PUBLIC_API_URL}/api`
-          : 'https://pathtopro-backend.onrender.com/api';
+        const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
+        const cleanUrl = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+        const apiUrl = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 
         console.log('Fetching subjects from:', `${apiUrl}/subjects`);
 
