@@ -36,7 +36,7 @@ export default function CoursePage() {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
   // Auth state from global store
-  const { user, isAuthenticated: isLoggedIn, authLoading } = useAuthStore();
+  const { isAuthenticated: isLoggedIn, authLoading } = useAuthStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -49,8 +49,7 @@ export default function CoursePage() {
   useEffect(() => {
     async function loadCourse() {
       try {
-        const apiBase =
-          process.env.NEXT_PUBLIC_API_BASE_URL || "https://pathtopro-backend.onrender.com/api";
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
 
         const res = await fetch(`${apiBase}/subjects/${subjectId}/tree`, {
           cache: "no-store",
@@ -141,27 +140,35 @@ export default function CoursePage() {
   if (loading || authLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
-        {/* Sidebar skeleton */}
-        <div className="w-72 h-screen bg-white border-r animate-pulse">
-          <div className="p-5 border-b space-y-3">
-            <div className="h-5 bg-gray-200 rounded w-2/3" />
-            <div className="h-2 bg-gray-200 rounded-full" />
-          </div>
-          <div className="p-5 space-y-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-8 bg-gray-100 rounded-lg" />
+        <div className="w-80 bg-white border-r border-gray-200 p-6 hidden md:block">
+          <div className="h-6 w-3/4 bg-gray-200 rounded animate-pulse mb-8" />
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-16 w-full bg-gray-100 rounded animate-pulse" />
             ))}
           </div>
         </div>
-        {/* Main content skeleton */}
-        <div className="flex-1 overflow-y-auto">
-          <LessonSkeleton />
+        <div className="flex-1 p-8 overflow-y-auto">
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="w-full aspect-video bg-gray-200 rounded-xl animate-pulse" />
+            <div className="h-8 w-2/3 bg-gray-200 rounded animate-pulse" />
+            <div className="h-20 w-full bg-gray-100 rounded animate-pulse" />
+          </div>
         </div>
       </div>
     );
   }
 
-  // ─── Error State ────────────────────────────────────────────────────────────
+  // ─── Unauthenticated State ────────────────────────────────────────────────
+  if (!isLoggedIn) {
+    return (
+      <div className="flex h-screen bg-gray-50 items-center justify-center">
+        <LoginModal open={true} onClose={() => { }} />
+      </div>
+    );
+  }
+
+  // ─── Error Handling ────────────────────────────────────────────────────────
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">

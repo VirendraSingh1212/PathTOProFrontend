@@ -6,8 +6,9 @@ type Props = {
 };
 
 export default function ChatFAB({ onClick }: Props) {
-    const { authLoading } = useAuthStore();
+    const { authLoading, user } = useAuthStore();
     if (authLoading) return null;
+    if (!user) return null;
 
     return (
         <button

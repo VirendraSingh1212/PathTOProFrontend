@@ -21,8 +21,8 @@ export default function MarkCompleteButton({ lessonId, onComplete, initialComple
 
         try {
             const apiBase =
-                process.env.NEXT_PUBLIC_API_BASE_URL || "https://pathtopro-backend.onrender.com/api";
-            const res = await fetch(`${apiBase}/progress/mark-complete`, {
+                process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
+            const res = await fetch(`${apiBase}/api/progress/complete`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",

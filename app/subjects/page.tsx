@@ -22,7 +22,7 @@ export default function SubjectsPage() {
       try {
         setLoading(true);
         // Use the correct env variable name
-        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://pathtopro-backend.onrender.com/api';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
 
         console.log('Fetching subjects from:', `${apiUrl}/subjects`);
 

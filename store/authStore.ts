@@ -40,29 +40,17 @@ export const useAuthStore = create<AuthState>()(
             hydrateAuth: async () => {
                 try {
                     set({ authLoading: true });
-                    const token = get().accessToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
-
-                    if (!token) {
-                        set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
-                        return;
-                    }
-
-                    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://pathtopro-backend.onrender.com/api';
-                    const res = await fetch(`${apiBase}/auth/me`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+                    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com';
+                    const res = await fetch(`${apiBase}/api/auth/me`, {
+                        credentials: "include"
                     });
 
                     if (res.ok) {
                         const data = await res.json();
-                        // Handle multiple backend structures { user: ... } or just raw user
                         const matchedUser = data.user || data;
-                        set({ user: matchedUser, isAuthenticated: true, authLoading: false, accessToken: token });
+                        set({ user: matchedUser, isAuthenticated: true, authLoading: false });
                     } else {
-                        // 401 / Invalid
-                        if (typeof window !== 'undefined') localStorage.removeItem('token');
-                        set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
+                        set({ user: null, isAuthenticated: false, authLoading: false });
                     }
                 } catch (err) {
                     set({ user: null, isAuthenticated: false, authLoading: false });
