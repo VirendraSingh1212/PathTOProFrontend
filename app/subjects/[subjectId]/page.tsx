@@ -10,6 +10,7 @@ import NextLessonButton from "@/components/NextLessonButton";
 import ChatFAB from "@/components/ChatFAB";
 import ChatbotOverlay from "@/components/ChatbotOverlay";
 import LoginModal from "@/components/LoginModal";
+import { useAuthStore } from "@/store/authStore";
 
 type Lesson = {
   id: string;
@@ -34,8 +35,8 @@ export default function CoursePage() {
   const [error, setError] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
-  // Auth state
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Auth state from global store
+  const { user, isAuthenticated: isLoggedIn, authLoading } = useAuthStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -80,35 +81,6 @@ export default function CoursePage() {
     loadCourse();
   }, [subjectId]);
 
-  useEffect(() => {
-    let mounted = true;
-    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "https://pathtopro-backend.onrender.com/api";
-    // Check auth endpoint OR use local token based on your app architecture. 
-    // Assuming backend endpoint /auth/me exists as stated.
-    fetch(`${apiBase}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (!mounted) return;
-        // In some backends it might be data.user, in others just data
-        if (data && (data.user || data.id || data.email)) {
-          setIsLoggedIn(true);
-        } else {
-          setIsLoggedIn(false);
-        }
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setIsLoggedIn(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
   const handleLessonClick = (lesson: Lesson) => {
     if (currentLesson && !completedLessons.includes(currentLesson.id)) {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
@@ -117,11 +89,16 @@ export default function CoursePage() {
     setCurrentLesson(lesson);
   };
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = (opts?: { revert?: boolean }) => {
     if (!isLoggedIn) {
       setShowLoginModal(true);
       return;
     }
+    if (opts?.revert) {
+      setCompletedLessons((prev) => prev.filter(id => id !== currentLesson?.id));
+      return;
+    }
+    // Optimistic UI update
     if (currentLesson && !completedLessons.includes(currentLesson.id)) {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
@@ -161,7 +138,7 @@ export default function CoursePage() {
   };
 
   // ─── Loading State ─────────────────────────────────────────────────────────
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar skeleton */}
@@ -262,14 +239,14 @@ export default function CoursePage() {
                             : "border-l-4 border-transparent hover:bg-gray-50 text-gray-700"
                           }`}
                       >
-                        {/* Status icon */}
+                        {/* Status icon - blue dot for current, green check for complete, grey dot for untouched */}
                         <span
                           className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors
                             ${isDone
                               ? "bg-green-500 text-white"
                               : isCurrent
-                                ? "bg-blue-600 text-white"
-                                : "bg-gray-200 text-gray-500"
+                                ? "bg-blue-600 border-[4px] border-blue-100"
+                                : "bg-gray-200"
                             }`}
                         >
                           {isDone ? "✓" : null}
@@ -314,7 +291,7 @@ export default function CoursePage() {
             )}
 
             {/* Video Player */}
-            <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6 border border-gray-200" style={{ maxHeight: "480px", width: "100%", aspectRatio: "16/9" }}>
+            <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6" style={{ width: "100%", aspectRatio: "16/9" }}>
               {!currentLesson.videoUrl ? (
                 <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 min-h-[320px]">
                   <svg className="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -325,15 +302,17 @@ export default function CoursePage() {
                   <p className="text-sm text-gray-500 mt-1">This lesson doesn&apos;t have a video yet.</p>
                 </div>
               ) : (
-                <div className="relative w-full h-full">
-                  <iframe
-                    src={convertToEmbed(currentLesson.videoUrl)}
-                    className="absolute top-0 left-0 w-full h-full"
-                    title={currentLesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    frameBorder="0"
-                  />
+                <div className="w-full relative bg-black aspect-video rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(20,23,28,0.08)] max-h-[460px]">
+                  {currentLesson.videoUrl ? (
+                    <iframe
+                      className="absolute inset-0 w-full h-full"
+                      src={convertToEmbed(currentLesson.videoUrl)}
+                      title={currentLesson.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      frameBorder="0"
+                    />
+                  ) : null}
                 </div>
               )}
             </div>
@@ -358,7 +337,7 @@ export default function CoursePage() {
             )}
 
             <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-              <div onClick={!isLoggedIn ? handleMarkComplete : undefined}>
+              <div onClick={!isLoggedIn ? () => setShowLoginModal(true) : undefined}>
                 <MarkCompleteButton
                   lessonId={currentLesson.id}
                   initialCompleted={completedLessons.includes(currentLesson.id)}
@@ -372,7 +351,7 @@ export default function CoursePage() {
                   lessons={flatLessons}
                   currentLessonId={currentLesson.id}
                   onNext={handleNextLesson}
-                  disabled={!isLoggedIn}
+                  disabled={!isLoggedIn || currentIndex === flatLessons.length - 1}
                 />
               </div>
             </div>

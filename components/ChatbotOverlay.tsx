@@ -2,12 +2,18 @@
 
 import React, { useState, useEffect, useRef } from "react";
 
-type Message = { from: "user" | "bot"; text: string };
+type Message = { id: string; from: "user" | "bot"; text: string };
 
 type Props = {
     open: boolean;
     onClose: () => void;
 };
+
+const SUGGESTIONS = [
+    "Show my progress",
+    "How to mark complete",
+    "Resume learning"
+];
 
 export default function ChatbotOverlay({ open, onClose }: Props) {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -19,7 +25,11 @@ export default function ChatbotOverlay({ open, onClose }: Props) {
     useEffect(() => {
         if (open) {
             if (messages.length === 0) {
-                setMessages([{ from: "bot", text: "Have doubt? Ask me anything about your courses." }]);
+                setMessages([{
+                    id: 'init-msg',
+                    from: "bot",
+                    text: "Have doubt? Ask me anything — try: 'Resume learning', 'Show my progress', 'How to mark complete'."
+                }]);
             }
             setTimeout(() => inputRef.current?.focus(), 100);
         }
@@ -31,10 +41,11 @@ export default function ChatbotOverlay({ open, onClose }: Props) {
         }
     }, [messages, loading]);
 
-    const send = async () => {
-        if (!text.trim() || loading) return;
-        const userMsg = text.trim();
-        setMessages((m) => [...m, { from: "user", text: userMsg }]);
+    const send = async (overrideText?: string) => {
+        const userMsg = (overrideText || text).trim();
+        if (!userMsg || loading) return;
+
+        setMessages((m) => [...m, { id: Date.now().toString(), from: "user", text: userMsg }]);
         setText("");
         setLoading(true);
 
@@ -43,68 +54,93 @@ export default function ChatbotOverlay({ open, onClose }: Props) {
             const res = await fetch(`${apiBase}/api/chatbot/message`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                // if user token is required it needs to be attached or passed with credentials: 'include'
                 body: JSON.stringify({ message: userMsg }),
             });
 
             if (!res.ok) {
                 setMessages((m) => [
                     ...m,
-                    { from: "bot", text: "AI service is temporarily unavailable. Please try again later." },
+                    { id: Date.now().toString(), from: "bot", text: "AI service is temporarily unavailable. Please try again later." },
                 ]);
             } else {
                 const data = await res.json();
-                setMessages((m) => [...m, { from: "bot", text: data?.data?.reply || data.reply || "No answer" }]);
+                setMessages((m) => [...m, { id: Date.now().toString(), from: "bot", text: data?.data?.reply || data.reply || "No answer" }]);
             }
         } catch (err) {
             console.error(err);
             setMessages((m) => [
                 ...m,
-                { from: "bot", text: "AI service is temporarily unavailable. Please try again later." },
+                { id: Date.now().toString(), from: "bot", text: "AI service is temporarily unavailable. Please try again later." },
             ]);
         } finally {
             setLoading(false);
         }
     };
 
+    const handleSuggestionClick = (suggestion: string) => {
+        if (loading) return;
+        setText(suggestion);
+        inputRef.current?.focus();
+    };
+
     if (!open) return null;
 
     return (
         <div
-            className="fixed inset-0 flex items-center justify-center bg-black/60 z-[1200] p-4"
+            className="fixed inset-0 flex justify-center z-[1200] p-4 pt-[6vh]"
+            style={{ background: "rgba(10,10,10,0.98)" }}
             role="dialog"
             aria-modal="true"
             onClick={onClose}
         >
             <div
-                className="w-full max-w-3xl flex flex-col bg-[#0f1720] rounded-xl text-white shadow-2xl overflow-hidden"
+                className="w-full max-w-[980px] mx-auto flex flex-col bg-[#111111] border border-white/10 rounded-xl text-white shadow-2xl overflow-hidden relative"
                 style={{ height: "70vh" }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex justify-between items-center px-5 py-4 border-b border-white/10 font-bold">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xl">🤖</span>
-                        <span>PathToPro Assistant</span>
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors z-10"
+                    aria-label="Close"
+                >
+                    ✕
+                </button>
+
+                <div className="flex flex-col items-center justify-center p-8 border-b border-white/5">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-2xl mb-3">
+                        🤖
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 transition-colors"
-                    >
-                        ✕
-                    </button>
+                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
+                        Ready when you are.
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-2 text-center max-w-md">
+                        Ask me anything about your courses, lessons, or progress.
+                    </p>
+
+                    <div className="flex flex-wrap gap-2 justify-center mt-5">
+                        {SUGGESTIONS.map(s => (
+                            <button
+                                key={s}
+                                onClick={() => handleSuggestionClick(s)}
+                                className="bg-white/5 border border-white/10 hover:bg-white/10 text-xs px-3 py-1.5 rounded-full transition-colors text-gray-300"
+                            >
+                                {s}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="flex-1 overflow-auto p-5 flex flex-col gap-4" ref={scrollRef}>
-                    {messages.map((m, idx) => (
+                <div className="flex-1 overflow-auto p-6 flex flex-col gap-5 bg-[#0a0a0a]" ref={scrollRef}>
+                    {messages.map((m) => (
                         <div
-                            key={idx}
-                            className={`flex flex-col max-w-[80%] ${m.from === "user" ? "self-end items-end" : "self-start items-start"
+                            key={m.id}
+                            className={`flex flex-col max-w-[85%] ${m.from === "user" ? "self-end items-end" : "self-start items-start"
                                 }`}
                         >
                             <div
-                                className={`py-2.5 px-4 rounded-2xl text-sm leading-relaxed ${m.from === "user"
-                                        ? "bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-br-sm"
-                                        : "bg-white/5 text-gray-200 rounded-bl-sm border border-white/5"
+                                className={`py-2.5 px-4 rounded-2xl text-[15px] leading-relaxed ${m.from === "user"
+                                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-sm shadow-md"
+                                        : "bg-[#18181b] text-gray-200 rounded-bl-sm border border-white/5"
                                     }`}
                             >
                                 {m.text}
@@ -113,37 +149,41 @@ export default function ChatbotOverlay({ open, onClose }: Props) {
                     ))}
                     {loading && (
                         <div className="self-start items-start flex flex-col max-w-[80%]">
-                            <div className="py-2.5 px-4 rounded-2xl text-sm leading-relaxed bg-white/5 text-gray-200 rounded-bl-sm border border-white/5 flex gap-1 items-center">
-                                <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0ms' }} />
-                                <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '150ms' }} />
-                                <span className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '300ms' }} />
+                            <div className="py-2.5 px-4 rounded-2xl bg-[#18181b] text-gray-200 rounded-bl-sm border border-white/5 flex gap-1.5 items-center h-10">
+                                <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                             </div>
                         </div>
                     )}
                 </div>
 
-                <div className="p-4 border-t border-white/5 bg-white/5 flex gap-2">
-                    <input
-                        ref={inputRef}
-                        value={text}
-                        onChange={(e) => setText(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                send();
-                            }
-                        }}
-                        placeholder="Ask anything about your courses..."
-                        className="flex-1 bg-white/10 border-none outline-none text-white px-4 py-3 rounded-lg text-sm placeholder:text-gray-400 focus:bg-white/20 transition-colors"
-                        disabled={loading}
-                    />
-                    <button
-                        onClick={send}
-                        disabled={loading || !text.trim()}
-                        className="bg-purple-600 text-white border-none px-5 rounded-lg flex items-center justify-center font-bold text-lg hover:bg-purple-500 transition-colors disabled:opacity-50"
-                    >
-                        {loading ? "…" : "↵"}
-                    </button>
+                <div className="p-4 bg-[#111]">
+                    <div className="relative max-w-4xl mx-auto flex items-center bg-[#1a1a1a] rounded-xl border border-white/5 focus-within:border-white/20 transition-colors">
+                        <input
+                            ref={inputRef}
+                            value={text}
+                            onChange={(e) => setText(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    send();
+                                }
+                            }}
+                            placeholder="Message PathToPro Assistant..."
+                            className="flex-1 bg-transparent border-none outline-none text-white px-5 py-4 text-[15px] placeholder:text-gray-500"
+                            disabled={loading}
+                            aria-label="Chat input"
+                        />
+                        <button
+                            onClick={() => send()}
+                            disabled={loading || !text.trim()}
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-black w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:hover:bg-white"
+                            aria-label="Send message"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

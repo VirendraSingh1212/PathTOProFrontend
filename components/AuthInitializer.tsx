@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAuthStore } from "@/store/authStore";
 
 /**
- * AuthInitializer ensures Zustand persist has time to rehydrate
- * auth state from localStorage before protected routes render.
- * 
- * This prevents hydration race conditions without polluting
- * the auth store with timing state.
+ * AuthInitializer protects routes by properly hydrating from backend OR local storage
  */
 export default function AuthInitializer({
   children,
@@ -15,19 +12,17 @@ export default function AuthInitializer({
   children: React.ReactNode;
 }) {
   const [ready, setReady] = useState(false);
+  const hydrateAuth = useAuthStore((state) => state.hydrateAuth);
 
   useEffect(() => {
-    // Allow Zustand persist middleware to complete rehydration
-    // Using setTimeout(0) defers to next microtask, ensuring
-    // localStorage read completes before rendering protected content
-    const timer = setTimeout(() => {
+    // Single hydration point across the whole app
+    hydrateAuth().finally(() => {
       setReady(true);
-    }, 0);
-
-    return () => clearTimeout(timer);
-  }, []);
+    });
+  }, [hydrateAuth]);
 
   if (!ready) {
+    // Global hydration takes precedence. Protects against UI flash.
     return null;
   }
 

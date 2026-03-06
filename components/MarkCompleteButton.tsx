@@ -4,7 +4,7 @@ import { useState } from "react";
 
 type Props = {
     lessonId: string;
-    onComplete?: () => void;
+    onComplete?: (opts?: { revert: boolean }) => void;
     initialCompleted?: boolean;
     disabled?: boolean;
 };
@@ -16,6 +16,8 @@ export default function MarkCompleteButton({ lessonId, onComplete, initialComple
     async function markComplete() {
         if (completed || loading || disabled) return;
         setLoading(true);
+        setCompleted(true);
+        onComplete?.(); // Optimistic update
 
         try {
             const apiBase =
@@ -27,11 +29,11 @@ export default function MarkCompleteButton({ lessonId, onComplete, initialComple
                 body: JSON.stringify({ lessonId }),
             });
             if (!res.ok) throw new Error("failed");
-            setCompleted(true);
-            onComplete?.();
         } catch (e) {
             console.error(e);
             alert("Could not mark complete. Try again.");
+            setCompleted(false);
+            onComplete?.({ revert: true }); // Revert optimistic update
         } finally {
             setLoading(false);
         }

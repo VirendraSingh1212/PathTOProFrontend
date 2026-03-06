@@ -12,10 +12,12 @@ interface AuthState {
     accessToken: string | null;
     isAuthenticated: boolean;
     loading: boolean;
+    authLoading: boolean;
     setToken: (token: string) => void;
     setUser: (user: User) => void;
     login: (token: string, user: User) => void;
     logout: () => void;
+    hydrateAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -25,10 +27,47 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             isAuthenticated: false,
             loading: false,
+            authLoading: true,
             setToken: (token) => set({ accessToken: token, isAuthenticated: !!token }),
             setUser: (user) => set({ user }),
             login: (token, user) => set({ accessToken: token, user, isAuthenticated: true }),
-            logout: () => set({ accessToken: null, user: null, isAuthenticated: false }),
+            logout: () => {
+                if (typeof window !== 'undefined') {
+                    localStorage.removeItem('token');
+                }
+                set({ accessToken: null, user: null, isAuthenticated: false });
+            },
+            hydrateAuth: async () => {
+                try {
+                    set({ authLoading: true });
+                    const token = get().accessToken || (typeof window !== 'undefined' ? localStorage.getItem('token') : null);
+
+                    if (!token) {
+                        set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
+                        return;
+                    }
+
+                    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://pathtopro-backend.onrender.com/api';
+                    const res = await fetch(`${apiBase}/auth/me`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        // Handle multiple backend structures { user: ... } or just raw user
+                        const matchedUser = data.user || data;
+                        set({ user: matchedUser, isAuthenticated: true, authLoading: false, accessToken: token });
+                    } else {
+                        // 401 / Invalid
+                        if (typeof window !== 'undefined') localStorage.removeItem('token');
+                        set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
+                    }
+                } catch (err) {
+                    set({ user: null, isAuthenticated: false, authLoading: false });
+                }
+            }
         }),
         {
             name: 'auth-storage', // localStorage key
