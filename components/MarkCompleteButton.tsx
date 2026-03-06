@@ -7,13 +7,27 @@ type Props = {
     onComplete?: (opts?: { revert: boolean }) => void;
     initialCompleted?: boolean;
     disabled?: boolean;
+    isAuthenticated?: boolean;
+    onRequireAuth?: () => void;
 };
 
-export default function MarkCompleteButton({ lessonId, onComplete, initialCompleted = false, disabled = false }: Props) {
+export default function MarkCompleteButton({
+    lessonId,
+    onComplete,
+    initialCompleted = false,
+    disabled = false,
+    isAuthenticated = true,
+    onRequireAuth
+}: Props) {
     const [completed, setCompleted] = useState(initialCompleted);
     const [loading, setLoading] = useState(false);
 
     async function markComplete() {
+        if (!isAuthenticated) {
+            onRequireAuth?.();
+            return;
+        }
+
         if (completed || loading || disabled) return;
         setLoading(true);
         setCompleted(true);
@@ -39,12 +53,15 @@ export default function MarkCompleteButton({ lessonId, onComplete, initialComple
         }
     }
 
+    // Unauthenticated visually appear enabled so users can click to see the modal
+    const isVisuallyDisabled = loading || (isAuthenticated && completed) || disabled;
+
     return (
         <button
             onClick={markComplete}
-            disabled={loading || completed || disabled}
-            aria-disabled={loading || completed || disabled}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow-sm ${completed
+            disabled={isVisuallyDisabled}
+            aria-disabled={isVisuallyDisabled}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow-sm ${completed && isAuthenticated
                 ? "bg-green-100 text-green-700 border border-green-200 cursor-default"
                 : "bg-green-600 text-white hover:bg-green-700 active:scale-95"
                 } disabled:opacity-70 disabled:cursor-default`}
@@ -54,7 +71,7 @@ export default function MarkCompleteButton({ lessonId, onComplete, initialComple
                     <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
                     Saving…
                 </>
-            ) : completed ? (
+            ) : completed && isAuthenticated ? (
                 <>✓ Completed</>
             ) : (
                 <>✓ Mark as Complete</>

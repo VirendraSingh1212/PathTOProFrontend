@@ -299,31 +299,33 @@ export default function CoursePage() {
               </div>
             )}
 
-            {/* Video Player */}
-            <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6" style={{ width: "100%", aspectRatio: "16/9" }}>
-              {!currentLesson.videoUrl ? (
-                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 min-h-[320px]">
-                  <svg className="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  <p className="text-lg font-medium text-gray-300">Video Unavailable</p>
-                  <p className="text-sm text-gray-500 mt-1">This lesson doesn&apos;t have a video yet.</p>
-                </div>
-              ) : (
-                <div className="w-full relative bg-black aspect-video rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(20,23,28,0.08)] max-h-[460px]">
-                  {currentLesson.videoUrl ? (
-                    <iframe
-                      className="absolute inset-0 w-full h-full"
-                      src={convertToEmbed(currentLesson.videoUrl)}
-                      title={currentLesson.title}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      frameBorder="0"
-                    />
-                  ) : null}
-                </div>
-              )}
+            {/* Video Player - Constrained Width Container */}
+            <div className="max-w-3xl mx-auto">
+              <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6" style={{ width: "100%", aspectRatio: "16/9" }}>
+                {!currentLesson.videoUrl ? (
+                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 min-h-[320px]">
+                    <svg className="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-lg font-medium text-gray-300">Video Unavailable</p>
+                    <p className="text-sm text-gray-500 mt-1">This lesson doesn&apos;t have a video yet.</p>
+                  </div>
+                ) : (
+                  <div className="w-full relative bg-black aspect-video rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(20,23,28,0.08)] max-h-[460px]">
+                    {currentLesson.videoUrl ? (
+                      <iframe
+                        className="absolute inset-0 w-full h-full"
+                        src={convertToEmbed(currentLesson.videoUrl)}
+                        title={currentLesson.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        frameBorder="0"
+                      />
+                    ) : null}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Resume banner */}
@@ -346,15 +348,13 @@ export default function CoursePage() {
             )}
 
             <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-              <div onClick={!isLoggedIn ? () => setShowLoginModal(true) : undefined}>
-                <MarkCompleteButton
-                  lessonId={currentLesson.id}
-                  initialCompleted={completedLessons.includes(currentLesson.id)}
-                  onComplete={handleMarkComplete}
-                  disabled={!isLoggedIn}
-                /* ^ Note: We selectively disable the inner logic but add onClick wrapper for gated modal */
-                />
-              </div>
+              <MarkCompleteButton
+                lessonId={currentLesson.id}
+                initialCompleted={completedLessons.includes(currentLesson.id)}
+                onComplete={handleMarkComplete}
+                isAuthenticated={isLoggedIn}
+                onRequireAuth={() => setShowLoginModal(true)}
+              />
               <div onClick={handleNextButtonClick}>
                 <NextLessonButton
                   lessons={flatLessons}
