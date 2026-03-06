@@ -1,30 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 
 /**
- * AuthInitializer protects routes by properly hydrating from backend OR local storage
+ * AuthInitializer triggers session hydration from the backend on mount.
+ * It does NOT block rendering — children render immediately and react
+ * to auth state changes via Zustand once hydration completes.
  */
 export default function AuthInitializer({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [ready, setReady] = useState(false);
   const hydrateAuth = useAuthStore((state) => state.hydrateAuth);
 
   useEffect(() => {
-    // Single hydration point across the whole app
-    hydrateAuth().finally(() => {
-      setReady(true);
-    });
+    hydrateAuth();
   }, [hydrateAuth]);
 
-  if (!ready) {
-    // Global hydration takes precedence. Protects against UI flash.
-    return null;
-  }
-
+  // Render immediately — no blocking, no blank screen
   return <>{children}</>;
 }

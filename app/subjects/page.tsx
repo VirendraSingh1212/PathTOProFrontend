@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/authStore";
 
 export default function SubjectsPage() {
   const router = useRouter();
-  const { isAuthenticated, authLoading } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,11 +76,11 @@ export default function SubjectsPage() {
     router.push(`/subjects/${subject.id}`);
   };
 
-  if (loading || authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-cover bg-center flex items-center justify-center"
         style={{
-          backgroundImage: "url('/images/hero-bg.jpg')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')",
         }}
       >
         <div className="bg-white/90 backdrop-blur-sm p-8 rounded-lg shadow-xl">
@@ -97,7 +97,7 @@ export default function SubjectsPage() {
     return (
       <div className="min-h-screen bg-cover bg-center"
         style={{
-          backgroundImage: "url('/images/hero-bg.jpg')",
+          backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')",
         }}
       >
         <div className="min-h-screen bg-white/95 backdrop-blur-md flex items-center justify-center">
@@ -117,7 +117,7 @@ export default function SubjectsPage() {
     <div
       className="min-h-screen bg-cover bg-center bg-fixed"
       style={{
-        backgroundImage: "url('/images/hero-bg.jpg')"
+        backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')"
       }}
     >
       <div className="min-h-screen bg-white/85 backdrop-blur-[2px]">
