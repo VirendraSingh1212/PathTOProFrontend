@@ -205,35 +205,50 @@ export default function CoursePage() {
   }
 
   // ─── Main Layout ─────────────────────────────────────────────────────────────
-  return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+  const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
-      {/* ── Sidebar (fixed 280px) ─────────────────────────────────────────── */}
+  return (
+    <div style={{ display: "flex", height: "100vh", background: "#f8fafc", overflow: "hidden" }}>
+
+      {/* ── Sidebar ───────────────────────────────────────────────────────── */}
       <aside
-        className="flex flex-col h-screen bg-white border-r border-gray-200 overflow-hidden flex-shrink-0"
-        style={{ width: 280 }}
+        style={{
+          width: 280,
+          flexShrink: 0,
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          background: "white",
+          borderRight: "1px solid #f1f5f9",
+          overflow: "hidden",
+        }}
       >
         {/* Sidebar Header */}
-        <div className="p-5 border-b border-gray-100 bg-white sticky top-0 z-10">
-          <h2 className="font-bold text-gray-900 text-sm tracking-wide uppercase mb-3">
+        <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid #f1f5f9" }}>
+          <p style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "10px" }}>
             Course Content
-          </h2>
-          <ProgressBar completed={completedCount} total={totalLessons} />
+          </p>
+          {/* Step 3 — Gradient progress bar */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+            <span style={{ fontSize: "12px", color: "#64748b" }}>{completedCount} of {totalLessons} complete</span>
+            <span style={{ fontSize: "12px", fontWeight: 700, color: "#6366f1" }}>{progressPercent}%</span>
+          </div>
+          <div className="lesson-progress-bar">
+            <div className="lesson-progress-fill" style={{ width: `${progressPercent}%` }} />
+          </div>
         </div>
 
         {/* Lesson List */}
-        <div className="flex-1 overflow-y-auto">
+        <div style={{ flex: 1, overflowY: "auto" }}>
           {sections.map((section) => (
-            <div key={section.id} className="border-b border-gray-100 last:border-b-0">
-              {/* Section heading */}
-              <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  {section.title}
-                </p>
-              </div>
+            <div key={section.id} style={{ borderBottom: "1px solid #f8fafc" }}>
+              {/* Section Label */}
+              <p className="sidebar-section-title" style={{ padding: "0 16px 4px" }}>
+                {section.title}
+              </p>
 
-              {/* Lesson items */}
-              <ul>
+              {/* Lesson Items */}
+              <ul style={{ listStyle: "none", padding: "0 8px 8px", margin: 0 }}>
                 {section.lessons.map((lesson) => {
                   const isCurrent = currentLesson?.id === lesson.id;
                   const isDone = completedLessons.includes(lesson.id);
@@ -241,26 +256,28 @@ export default function CoursePage() {
                   return (
                     <li key={lesson.id}>
                       <button
+                        className={`lesson-item${isCurrent ? " active" : ""}`}
                         onClick={() => handleLessonClick(lesson)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 text-left text-sm transition-all
-                          ${isCurrent
-                            ? "bg-blue-50 border-l-4 border-blue-600 pl-3 text-blue-700 font-semibold"
-                            : "border-l-4 border-transparent hover:bg-gray-50 text-gray-700"
-                          }`}
                       >
-                        {/* Status icon - blue dot for current, green check for complete, grey dot for untouched */}
-                        <span
-                          className={`flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold transition-colors
-                            ${isDone
-                              ? "bg-green-500 text-white"
-                              : isCurrent
-                                ? "bg-blue-600 border-[4px] border-blue-100"
-                                : "bg-gray-200"
-                            }`}
-                        >
+                        {/* Status dot */}
+                        <span style={{
+                          flexShrink: 0,
+                          width: 18,
+                          height: 18,
+                          borderRadius: "50%",
+                          background: isDone ? "#16a34a" : isCurrent ? "#2563eb" : "#e5e7eb",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                          color: "white",
+                          fontWeight: 700,
+                        }}>
                           {isDone ? "✓" : null}
                         </span>
-                        <span className="flex-1 truncate leading-snug">{lesson.title}</span>
+                        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {lesson.title}
+                        </span>
                       </button>
                     </li>
                   );
@@ -271,75 +288,94 @@ export default function CoursePage() {
         </div>
       </aside>
 
-      {/* ── Main Content ─────────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto">
+      {/* ── Main Content ──────────────────────────────────────────────────── */}
+      <main style={{ flex: 1, overflowY: "auto", background: "#f8fafc" }}>
         {!currentLesson ? (
           <LessonSkeleton />
         ) : (
-          <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="lesson-container">
 
-            {/* Global Progress */}
-            <div className="mb-6">
-              <ProgressBar completed={completedCount} total={totalLessons} colorClass="bg-blue-600" />
-            </div>
-
-            {/* Lesson title + badge */}
-            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
-              <h1 className="text-2xl font-bold text-gray-900 leading-tight">
-                {currentLesson.title}
-              </h1>
-              <span className="text-xs font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full whitespace-nowrap">
+            {/* Step 2 — Lesson Header */}
+            <div className="lesson-header">
+              <p className="lesson-meta">
                 Lesson {currentIndex + 1} of {flatLessons.length}
-              </span>
-            </div>
-
-            {currentLesson.isPreview && (
-              <div className="inline-flex items-center gap-1.5 text-sm text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full mb-4 font-medium">
-                🔓 Free Preview
-              </div>
-            )}
-
-            {/* Video Player - Constrained Width Container */}
-            <div className="max-w-3xl mx-auto">
-              <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6" style={{ width: "100%", aspectRatio: "16/9" }}>
-                {!currentLesson.videoUrl ? (
-                  <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 min-h-[320px]">
-                    <svg className="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
-                        d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <p className="text-lg font-medium text-gray-300">Video Unavailable</p>
-                    <p className="text-sm text-gray-500 mt-1">This lesson doesn&apos;t have a video yet.</p>
-                  </div>
-                ) : (
-                  <div className="w-full relative bg-black aspect-video rounded-xl overflow-hidden shadow-[0_6px_20px_rgba(20,23,28,0.08)] max-h-[460px]">
-                    {currentLesson.videoUrl ? (
-                      <iframe
-                        className="absolute inset-0 w-full h-full"
-                        src={convertToEmbed(currentLesson.videoUrl)}
-                        title={currentLesson.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        frameBorder="0"
-                      />
-                    ) : null}
-                  </div>
+                {currentLesson.isPreview && (
+                  <span style={{
+                    marginLeft: 10,
+                    background: "#dbeafe",
+                    color: "#2563eb",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: "999px",
+                  }}>
+                    🔓 FREE PREVIEW
+                  </span>
                 )}
-              </div>
+              </p>
+              <h1 className="lesson-title">{currentLesson.title}</h1>
             </div>
 
-            {/* Resume banner */}
+            {/* Step 4 — Video Card */}
+            <div className="lesson-video-card">
+              {!currentLesson.videoUrl ? (
+                <div style={{
+                  width: "100%",
+                  aspectRatio: "16/9",
+                  background: "#111827",
+                  borderRadius: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 12,
+                }}>
+                  <svg style={{ width: 48, height: 48, color: "#4b5563" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <p style={{ color: "#9ca3af", fontWeight: 500 }}>Video Unavailable</p>
+                  <p style={{ color: "#6b7280", fontSize: "13px" }}>This lesson doesn&apos;t have a video yet.</p>
+                </div>
+              ) : (
+                <div style={{ width: "100%", aspectRatio: "16/9", borderRadius: "12px", overflow: "hidden", background: "#000" }}>
+                  <iframe
+                    style={{ width: "100%", height: "100%", border: 0 }}
+                    src={convertToEmbed(currentLesson.videoUrl)}
+                    title={currentLesson.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Resume Banner */}
             {completedCount > 0 && completedCount < totalLessons && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between gap-4">
+              <div style={{
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                borderRadius: "10px",
+                padding: "12px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: "20px",
+                gap: 12,
+              }}>
                 <div>
-                  <p className="text-sm text-blue-700 font-medium">Resume where you left off</p>
-                  <p className="text-xs text-blue-500 mt-0.5">Continue your learning journey</p>
+                  <p style={{ fontSize: "13px", fontWeight: 600, color: "#1d4ed8" }}>Resume where you left off</p>
+                  <p style={{ fontSize: "12px", color: "#60a5fa", marginTop: 2 }}>Continue your learning journey</p>
                 </div>
                 <button
-                  className="flex-shrink-0 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 transition"
                   onClick={() => {
                     const firstIncomplete = flatLessons.find((l) => !completedLessons.includes(l.id));
                     if (firstIncomplete) handleLessonClick(firstIncomplete);
+                  }}
+                  style={{
+                    background: "#2563eb", color: "white", border: "none",
+                    borderRadius: "8px", padding: "8px 16px", cursor: "pointer",
+                    fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap",
                   }}
                 >
                   Resume
@@ -347,7 +383,17 @@ export default function CoursePage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between pt-6 border-t border-gray-200">
+            {/* Step 7 — AI Helper Card */}
+            <div className="lesson-helper">
+              <span className="lesson-helper-icon">🤖</span>
+              <div className="lesson-helper-text">
+                <strong>Have a doubt about this lesson?</strong>
+                Ask the AI assistant — click the chat button in the bottom-right corner.
+              </div>
+            </div>
+
+            {/* Step 5 — Action Buttons */}
+            <div className="lesson-actions">
               <MarkCompleteButton
                 lessonId={currentLesson.id}
                 initialCompleted={completedLessons.includes(currentLesson.id)}
@@ -375,3 +421,4 @@ export default function CoursePage() {
     </div>
   );
 }
+
