@@ -123,66 +123,74 @@ export default function SubjectsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {subjects.map((subject, index) => {
+                const FALLBACK_COVERS = [
+                  "https://images.unsplash.com/photo-1498050108023-c5249f4df085", // Web / laptop
+                  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d", // System design / diagram
+                  "https://images.unsplash.com/photo-1551288049-bebda4e38f71", // Algorithms / abstract
+                ];
+                const fallbackImage = FALLBACK_COVERS[index % FALLBACK_COVERS.length];
 
-              {subjects.map((subject) => (
-                <div
-                  key={subject.id}
-                  className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group"
-                >
-                  {/* Cover Image */}
-                  <div className="relative h-44 w-full overflow-hidden">
-                    <img
-                      src={
-                        SUBJECT_COVERS[subject.title] ??
-                        subject.thumbnail_url ??
-                        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3"
-                      }
-                      alt={subject.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        e.currentTarget.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3";
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors" />
-                  </div>
+                return (
+                  <div
+                    key={subject.id}
+                    className="bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group"
+                  >
+                    {/* Cover Image */}
+                    <div className="relative h-44 w-full overflow-hidden">
+                      <img
+                        src={
+                          SUBJECT_COVERS[subject.title] ??
+                          subject.thumbnail_url ??
+                          fallbackImage
+                        }
+                        alt={subject.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          e.currentTarget.src = fallbackImage;
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors" />
+                    </div>
 
-                  {/* Content */}
-                  <div className="p-6 flex flex-col flex-1">
-                    <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                      {subject.title}
-                    </h2>
+                    {/* Content */}
+                    <div className="p-6 flex flex-col flex-1">
+                      <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {subject.title}
+                      </h2>
 
-                    <p className="text-sm text-gray-500 mt-2 line-clamp-2">
-                      {subject.description}
-                    </p>
+                      <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                        {subject.description}
+                      </p>
 
-                    <div className="mt-auto pt-6">
-                      {/* Progress Bar */}
-                      <div className="space-y-2 mb-6">
-                        <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-gray-400">
-                          <span>Progress</span>
-                          <span className="text-blue-600">{subject.progressPercent ?? 0}%</span>
+                      <div className="mt-auto pt-6">
+                        {/* Progress Bar */}
+                        <div className="space-y-2 mb-6">
+                          <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            <span>Progress</span>
+                            <span className="text-blue-600">{subject.progressPercent ?? 0}%</span>
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${subject.progressPercent ?? 0}%`,
+                              }}
+                            />
+                          </div>
                         </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
-                            style={{
-                              width: `${subject.progressPercent ?? 0}%`,
-                            }}
-                          />
-                        </div>
+
+                        <Link
+                          href={`/subjects/${subject.id}`}
+                          className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm group-hover:shadow-md"
+                        >
+                          Continue Learning
+                        </Link>
                       </div>
-
-                      <Link
-                        href={`/subjects/${subject.id}`}
-                        className="w-full inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm group-hover:shadow-md"
-                      >
-                        Continue Learning
-                      </Link>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
