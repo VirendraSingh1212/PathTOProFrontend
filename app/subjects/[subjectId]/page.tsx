@@ -42,16 +42,25 @@ export default function CoursePage() {
   useEffect(() => {
     async function loadCourse() {
       try {
+        console.log('📚 Loading course for subjectId:', subjectId);
+        
         const res = await fetch(
           `https://pathtopro-backend.onrender.com/api/subjects/${subjectId}/tree`,
           { cache: "no-store" }
         );
 
+        console.log('📡 Response status:', res.status);
+
         if (!res.ok) {
-          throw new Error(`Failed to load course: ${res.status}`);
+          // Try to get error details from response
+          const errorText = await res.text();
+          console.error('❌ API Error:', res.status, errorText);
+          throw new Error(`Failed to load course: ${res.status} - ${errorText || 'Unknown error'}`);
         }
 
         const json = await res.json();
+        console.log('✅ Course data received:', json);
+        
         const courseSections = json.data?.sections || [];
 
         setSections(courseSections);
@@ -64,7 +73,7 @@ export default function CoursePage() {
 
         setLoading(false);
       } catch (err) {
-        console.error('Error loading course:', err);
+        console.error('❌ Error loading course:', err);
         setError(err instanceof Error ? err.message : 'Failed to load course');
         setLoading(false);
       }
