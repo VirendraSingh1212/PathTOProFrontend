@@ -7,6 +7,9 @@ import LessonSkeleton from "@/components/LessonSkeleton";
 import ProgressBar from "@/components/ProgressBar";
 import MarkCompleteButton from "@/components/MarkCompleteButton";
 import NextLessonButton from "@/components/NextLessonButton";
+import ChatFAB from "@/components/ChatFAB";
+import ChatbotOverlay from "@/components/ChatbotOverlay";
+import LoginModal from "@/components/LoginModal";
 
 type Lesson = {
   id: string;
@@ -31,12 +34,16 @@ export default function CoursePage() {
   const [error, setError] = useState<string | null>(null);
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
+  // Auth state
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+
   // Flatten lessons for navigation and progress
   const flatLessons = sections.flatMap((s) => s.lessons);
   const currentIndex = flatLessons.findIndex((l) => l.id === currentLesson?.id);
   const completedCount = completedLessons.length;
   const totalLessons = flatLessons.length;
-  const progressPercent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   useEffect(() => {
     async function loadCourse() {
@@ -73,6 +80,35 @@ export default function CoursePage() {
     loadCourse();
   }, [subjectId]);
 
+  useEffect(() => {
+    let mounted = true;
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "https://pathtopro-backend.onrender.com/api";
+    // Check auth endpoint OR use local token based on your app architecture. 
+    // Assuming backend endpoint /auth/me exists as stated.
+    fetch(`${apiBase}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`
+      }
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!mounted) return;
+        // In some backends it might be data.user, in others just data
+        if (data && (data.user || data.id || data.email)) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setIsLoggedIn(false);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const handleLessonClick = (lesson: Lesson) => {
     if (currentLesson && !completedLessons.includes(currentLesson.id)) {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
@@ -82,13 +118,21 @@ export default function CoursePage() {
   };
 
   const handleMarkComplete = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
     if (currentLesson && !completedLessons.includes(currentLesson.id)) {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
   };
 
   const handleNextLesson = (nextLesson: Lesson) => {
-    // Mark current lesson complete when navigating forward
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    // Mark current lesson complete when navigating forward (optional UI choice, keeping as is)
     if (currentLesson && !completedLessons.includes(currentLesson.id)) {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
@@ -96,6 +140,24 @@ export default function CoursePage() {
     setCurrentLesson(nextLesson);
     // Scroll to top of content area
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleNextButtonClick = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+    if (currentIndex >= 0 && currentIndex < flatLessons.length - 1) {
+      handleNextLesson(flatLessons[currentIndex + 1]);
+    }
+  };
+
+  const handleOpenChat = () => {
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+    } else {
+      setIsChatOpen(true);
+    }
   };
 
   // ─── Loading State ─────────────────────────────────────────────────────────
@@ -252,9 +314,9 @@ export default function CoursePage() {
             )}
 
             {/* Video Player */}
-            <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6 border border-gray-200">
+            <div className="rounded-xl overflow-hidden shadow-xl bg-black mb-6 border border-gray-200" style={{ maxHeight: "480px", width: "100%", aspectRatio: "16/9" }}>
               {!currentLesson.videoUrl ? (
-                <div className="aspect-video flex flex-col items-center justify-center text-gray-400 bg-gray-900">
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 bg-gray-900 min-h-[320px]">
                   <svg className="h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
                       d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -263,7 +325,7 @@ export default function CoursePage() {
                   <p className="text-sm text-gray-500 mt-1">This lesson doesn&apos;t have a video yet.</p>
                 </div>
               ) : (
-                <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                <div className="relative w-full h-full">
                   <iframe
                     src={convertToEmbed(currentLesson.videoUrl)}
                     className="absolute top-0 left-0 w-full h-full"
@@ -295,22 +357,33 @@ export default function CoursePage() {
               </div>
             )}
 
-            {/* Action buttons */}
             <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-              <MarkCompleteButton
-                lessonId={currentLesson.id}
-                initialCompleted={completedLessons.includes(currentLesson.id)}
-                onComplete={handleMarkComplete}
-              />
-              <NextLessonButton
-                lessons={flatLessons}
-                currentLessonId={currentLesson.id}
-                onNext={handleNextLesson}
-              />
+              <div onClick={!isLoggedIn ? handleMarkComplete : undefined}>
+                <MarkCompleteButton
+                  lessonId={currentLesson.id}
+                  initialCompleted={completedLessons.includes(currentLesson.id)}
+                  onComplete={handleMarkComplete}
+                  disabled={!isLoggedIn}
+                /* ^ Note: We selectively disable the inner logic but add onClick wrapper for gated modal */
+                />
+              </div>
+              <div onClick={handleNextButtonClick}>
+                <NextLessonButton
+                  lessons={flatLessons}
+                  currentLessonId={currentLesson.id}
+                  onNext={handleNextLesson}
+                  disabled={!isLoggedIn}
+                />
+              </div>
             </div>
           </div>
         )}
       </main>
+
+      {/* Global Overlays */}
+      <ChatFAB onClick={handleOpenChat} />
+      <ChatbotOverlay open={isChatOpen} onClose={() => setIsChatOpen(false)} />
+      <LoginModal open={showLoginModal} onClose={() => setShowLoginModal(false)} />
     </div>
   );
 }

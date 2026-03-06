@@ -21,62 +21,6 @@ type Message = {
   actions?: { id: string; label: string; action: string }[];
 };
 
-const INTENTS: {
-  keywords: string[];
-  response: string;
-  actions?: { id: string; label: string; action: string }[];
-}[] = [
-    {
-      keywords: ["course", "courses", "subjects", "catalog"],
-      response:
-        "You can browse all available courses on the Subjects page. Select a subject to see sections and lessons.",
-      actions: [{ id: "go_subjects", label: "Go to Subjects →", action: "subjects" }],
-    },
-    {
-      keywords: ["progress", "progress bar", "completed", "completion"],
-      response:
-        "Progress is tracked when you mark lessons complete. Open a subject and click 'Mark as Complete' on each lesson.",
-      actions: [{ id: "go_subjects", label: "View Subjects →", action: "subjects" }],
-    },
-    {
-      keywords: ["lesson", "lessons", "play", "video"],
-      response:
-        "Open any subject and click a lesson from the left sidebar to start the video. Use the Next button to go forward.",
-      actions: [{ id: "go_subjects", label: "Open Subjects →", action: "subjects" }],
-    },
-    {
-      keywords: ["mark complete", "mark as complete", "complete"],
-      response:
-        "Use the 'Mark as Complete' button below the video to mark a lesson finished. This updates your course progress.",
-    },
-    {
-      keywords: ["resume", "continue", "where i left", "last lesson"],
-      response:
-        "To resume, use the Continue / Resume feature on the course card or click the button below.",
-      actions: [{ id: "resume", label: "Resume Learning →", action: "resume" }],
-    },
-    {
-      keywords: ["login", "sign in", "register", "signup", "sign up"],
-      response:
-        "If you are not logged in, please sign in or register to access courses and save progress.",
-      actions: [{ id: "login", label: "Login / Register →", action: "login" }],
-    },
-    {
-      keywords: ["help", "support", "assist"],
-      response:
-        "I can help you find courses, explain how progress works, and navigate to lessons. Try: 'show courses', 'how to mark complete', or 'resume learning'.",
-    },
-  ];
-
-function detectIntent(text: string) {
-  const clean = text.toLowerCase();
-  for (const intent of INTENTS) {
-    for (const kw of intent.keywords) {
-      if (clean.includes(kw)) return intent;
-    }
-  }
-  return null;
-}
 
 const uid = () => Math.random().toString(36).slice(2, 9);
 
