@@ -18,99 +18,82 @@ type Props = {
 };
 
 const SUBJECT_COVERS: Record<string, string> = {
-    "Full-Stack Development Masterclass": "/covers/fullstack.jpg",
-    "System Design Fundamentals": "/covers/systemdesign.jpg",
-    "Data Structures & Algorithms": "/covers/dsa.jpg",
+    "Full-Stack Development Masterclass": "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
+    "System Design Fundamentals": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80",
+    "Data Structures & Algorithms": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
 };
 
 export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
     const { title, description, status = "available", progressPercent = 0 } = subject;
-
-    const overlayText = status === "coming-soon" ? "Coming Soon" : status === "preview" ? "Free Preview" : null;
     const disabled = status === "coming-soon";
 
-    const getStatusColor = () => {
-        if (status === "preview") return "text-blue-600";
-        if (status === "coming-soon") return "text-gray-400";
-        return "text-gray-900 group-hover:text-blue-600 transition-colors";
+    const getBtnLabel = () => {
+        if (status === "coming-soon") return "Coming Soon";
+        if (status === "preview") return "Preview Course";
+        return "Continue Learning";
     };
 
+    const coverSrc = SUBJECT_COVERS[title] ?? subject.thumbnail_url ?? fallbackImage;
+
     return (
-        <div className={`relative bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col group transition-all duration-300 ${!disabled ? "hover:shadow-xl hover:-translate-y-1" : "opacity-80"}`}>
+        <div className={`subject-card${disabled ? " opacity-75 pointer-events-auto" : ""}`}>
             {/* Cover Image */}
-            <div className="relative h-44 w-full overflow-hidden bg-gray-100 items-center justify-center flex">
-                <img
-                    src={
-                        SUBJECT_COVERS[subject.title] ??
-                        subject.thumbnail_url ??
-                        fallbackImage
-                    }
-                    alt={title}
-                    className={`w-full h-full object-cover transition-transform duration-500 ${!disabled ? "group-hover:scale-110" : ""}`}
-                    onError={(e) => {
-                        e.currentTarget.src = fallbackImage;
-                    }}
-                />
-                {!disabled && <div className="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors" />}
-            </div>
+            <img
+                src={coverSrc}
+                alt={title}
+                onError={(e) => { e.currentTarget.src = fallbackImage; }}
+            />
 
-            {/* Content */}
-            <div className="p-6 flex flex-col flex-1">
-                <h2 className={`text-xl font-bold ${getStatusColor()}`}>
+            {/* Status Badge */}
+            {status === "preview" && (
+                <div style={{
+                    position: "absolute",
+                    top: "12px",
+                    right: "12px",
+                    background: "#2563eb",
+                    color: "white",
+                    fontSize: "11px",
+                    fontWeight: 700,
+                    padding: "3px 10px",
+                    borderRadius: "999px",
+                    letterSpacing: "0.04em",
+                }}>
+                    FREE PREVIEW
+                </div>
+            )}
+
+            {/* Coming Soon Overlay */}
+            {disabled && <div className="coming-overlay">Coming Soon</div>}
+
+            {/* Card Body */}
+            <div style={{ padding: "22px", flex: 1, display: "flex", flexDirection: "column" }}>
+                <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px", color: "#111827" }}>
                     {title}
-                </h2>
+                </h3>
 
-                <p className="text-sm text-gray-500 mt-2 line-clamp-2">
+                <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "20px", lineHeight: 1.5 }}>
                     {description}
                 </p>
 
-                <div className="mt-auto pt-6">
-                    {/* Progress Bar */}
-                    <div className="space-y-2 mb-6">
-                        <div className="flex justify-between items-center text-xs font-semibold uppercase tracking-wider text-gray-400">
-                            <span>Progress</span>
-                            <span className="text-blue-600">{progressPercent}%</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div
-                                className="bg-blue-600 h-1.5 rounded-full transition-all duration-500"
-                                style={{
-                                    width: `${progressPercent}%`,
-                                }}
-                            />
-                        </div>
+                <div style={{ marginTop: "auto" }}>
+                    {/* Progress */}
+                    <div style={{ fontSize: "12px", color: "#9ca3af", marginBottom: "6px", fontWeight: 600, letterSpacing: "0.05em" }}>
+                        PROGRESS
+                    </div>
+                    <div style={{ height: "6px", background: "#e5e7eb", borderRadius: "6px", overflow: "hidden", marginBottom: "18px" }}>
+                        <div style={{ width: `${progressPercent}%`, background: "#2563eb", height: "100%", borderRadius: "6px", transition: "width 0.4s ease" }} />
                     </div>
 
+                    {/* CTA Button */}
                     <button
-                        onClick={() => !disabled && onOpen(subject)}
+                        className="continue-btn"
                         disabled={disabled}
-                        className={`w-full inline-flex items-center justify-center px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm ${disabled
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                            : "bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.98] group-hover:shadow-md"
-                            }`}
+                        onClick={() => !disabled && onOpen(subject)}
                     >
-                        {status === "available" ? "Continue Learning" : status === "preview" ? "Preview Course" : "Coming Soon"}
+                        {getBtnLabel()}
                     </button>
                 </div>
             </div>
-
-            {/* Overlay for status tags on image */}
-            {overlayText && (
-                <div className="absolute top-3 right-3 pointer-events-none">
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold shadow-md backdrop-blur-md ${status === "coming-soon" ? "bg-gray-900/80 text-white" : "bg-blue-600/90 text-white"}`}>
-                        {overlayText}
-                    </div>
-                </div>
-            )}
-
-            {/* Full hover overlay for coming soon */}
-            {status === 'coming-soon' && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10">
-                    <div className="px-5 py-2.5 bg-white rounded-lg shadow-xl text-sm font-bold text-gray-900 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        Coming Soon
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

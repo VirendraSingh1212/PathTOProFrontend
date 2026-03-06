@@ -114,55 +114,63 @@ export default function SubjectsPage() {
   }
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center bg-fixed"
-      style={{
-        backgroundImage: "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80')"
-      }}
-    >
-      <div className="min-h-screen bg-white/85 backdrop-blur-[2px]">
+    <div className="learning-container">
+      <div className="learning-inner">
 
-        <div className="max-w-6xl mx-auto px-6 py-12 md:py-20">
-
-          {/* Header */}
-          <div className="mb-12 text-center md:text-left">
-            <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              Your Learning Paths
-            </h1>
-            <p className="text-lg text-gray-600 mt-3 max-w-2xl">
-              Select a subject below to continue your journey. Explore free previews or unlock full access.
-            </p>
-          </div>
-
-          {/* Subjects Grid */}
-          {subjects.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-gray-100">
-              <BookOpen className="mx-auto h-16 w-16 text-gray-300 mb-4" />
-              <h3 className="text-xl font-bold text-gray-800 mb-2">No Subjects Available</h3>
-              <p className="text-gray-500">Check back later for new courses.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {subjects.map((subject, index) => {
-                const FALLBACK_COVERS = [
-                  "https://images.unsplash.com/photo-1498050108023-c5249f4df085", // Web / laptop
-                  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d", // System design / diagram
-                  "https://images.unsplash.com/photo-1551288049-bebda4e38f71", // Algorithms / abstract
-                ];
-                const fallbackImage = FALLBACK_COVERS[index % FALLBACK_COVERS.length];
-
-                return (
-                  <SubjectCard
-                    key={subject.id}
-                    subject={subject}
-                    fallbackImage={fallbackImage}
-                    onOpen={handleSubjectClick}
-                  />
-                );
-              })}
-            </div>
-          )}
+        {/* Page Title */}
+        <div style={{ marginBottom: "40px" }}>
+          <h1 style={{
+            fontSize: "36px",
+            fontWeight: 700,
+            marginBottom: "10px",
+            color: "#111827"
+          }}>
+            Your Learning Paths
+          </h1>
+          <p style={{
+            fontSize: "16px",
+            color: "#6b7280",
+            maxWidth: "600px",
+            lineHeight: 1.6
+          }}>
+            Select a subject below to continue your journey. Explore free previews or unlock full access.
+          </p>
         </div>
+
+        {/* Subjects Grid */}
+        {subjects.length === 0 ? (
+          <div style={{
+            textAlign: "center",
+            padding: "80px 20px",
+            background: "white",
+            borderRadius: "16px",
+            boxShadow: "0 6px 20px rgba(0,0,0,0.06)"
+          }}>
+            <BookOpen style={{ margin: "0 auto 16px", width: 56, height: 56, color: "#d1d5db" }} />
+            <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#1f2937", marginBottom: "8px" }}>No Subjects Available</h3>
+            <p style={{ color: "#9ca3af" }}>Check back later for new courses.</p>
+          </div>
+        ) : (
+          <div className="subject-grid">
+            {subjects.map((subject, index) => {
+              const FALLBACK_COVERS = [
+                "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
+                "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80",
+                "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
+              ];
+              const fallbackImage = FALLBACK_COVERS[index % FALLBACK_COVERS.length];
+
+              return (
+                <SubjectCard
+                  key={subject.id}
+                  subject={subject}
+                  fallbackImage={fallbackImage}
+                  onOpen={handleSubjectClick}
+                />
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <ProtectedActionModal

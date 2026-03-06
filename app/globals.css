@@ -2,6 +2,113 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Subjects Page Layout ─────────────────────────────────────────────── */
+
+.learning-container {
+  min-height: 100vh;
+  padding: 60px 20px;
+  background: linear-gradient(180deg,
+      #ffffff 0%,
+      #f5f7fb 100%);
+}
+
+.learning-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── Subject Grid ──────────────────────────────────────────────────────── */
+
+.subject-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+
+@media (max-width: 900px) {
+  .subject-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .subject-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Subject Card ──────────────────────────────────────────────────────── */
+
+.subject-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.subject-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.12);
+}
+
+.subject-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+}
+
+/* ── Coming Soon Overlay ────────────────────────────────────────────────── */
+
+.coming-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.subject-card:hover .coming-overlay {
+  opacity: 1;
+}
+
+/* ── Continue Button ────────────────────────────────────────────────────── */
+
+.continue-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.continue-btn:hover {
+  background: #1d4ed8;
+}
+
+.continue-btn:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
@@ -15,6 +122,7 @@
     background: linear-gradient(180deg, #f8fafc, #ffffff);
     @apply text-foreground;
   }
+
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
@@ -42,6 +150,7 @@
     --chart-5: 27 87% 67%;
     --radius: 0.5rem;
   }
+
   .dark {
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
