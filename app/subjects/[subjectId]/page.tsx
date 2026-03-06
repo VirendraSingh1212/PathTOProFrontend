@@ -395,6 +395,7 @@ export default function CoursePage() {
             {/* Step 5 — Action Buttons */}
             <div className="lesson-actions">
               <MarkCompleteButton
+                key={currentLesson.id}
                 lessonId={currentLesson.id}
                 initialCompleted={completedLessons.includes(currentLesson.id)}
                 onComplete={handleMarkComplete}
