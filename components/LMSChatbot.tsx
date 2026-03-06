@@ -147,26 +147,22 @@ export default function LMSChatbot() {
   async function sendToBackend(text: string) {
     setIsTyping(true);
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-      const res = await fetch(`${apiBase}/api/chat`, {
+      // Use the stable backend endpoint
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
+      const response = await fetch(`${apiBase}/api/chatbot/message`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: text }),
       });
-
-      const data = await res.json();
-      const reply: string =
-        data?.data?.reply ||
-        (res.ok
-          ? "I'm not sure how to answer that. Try asking about courses or lessons!"
-          : "The assistant is temporarily unavailable. Please try again shortly.");
-
+      const data = await response.json();
+      const reply = data?.data?.reply || "I couldn't generate a response.";
       pushMessage({ id: uid(), sender: "bot", text: reply });
     } catch {
+      // Graceful error handling - no UI crash
       pushMessage({
         id: uid(),
         sender: "bot",
-        text: "Something went wrong while contacting the AI. Please check your connection and try again.",
+        text: "Connection error. Please try again.",
       });
     } finally {
       setIsTyping(false);
