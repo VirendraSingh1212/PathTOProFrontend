@@ -167,20 +167,32 @@ export default function SubjectsPage() {
     "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80",
     "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80",
   ];
+  // Compute dashboard stats from existing data
+  const coursesEnrolled = subjects.filter(s => (s.progressPercent || 0) > 0).length || subjects.length;
+  const totalProgress = subjects.length > 0
+    ? Math.round(subjects.reduce((sum, s) => sum + (s.progressPercent || 0), 0) / subjects.length)
+    : 0;
+  const lessonsCompleted = Math.round(totalProgress * 0.3); // approximate from progress
+
+  // Combine all subjects for roadmap
+  const allRoadmapItems = [
+    ...subjects.map(s => ({ title: s.title, status: (s.progressPercent || 0) > 50 ? "completed" : "active" as string })),
+    ...UPCOMING_SUBJECTS.map(s => ({ title: s.title, status: "upcoming" })),
+  ];
 
   return (
     <div className="learning-container">
       <div className="learning-inner">
 
         {/* Page Title */}
-        <div style={{ marginBottom: "40px" }}>
+        <div style={{ marginBottom: "32px" }}>
           <h1 style={{
             fontSize: "36px",
             fontWeight: 700,
             marginBottom: "10px",
             color: "#111827"
           }}>
-            Your Learning Paths
+            {isAuthenticated ? "Welcome back 👋" : "Your Learning Paths"}
           </h1>
           <p style={{
             fontSize: "16px",
@@ -188,9 +200,32 @@ export default function SubjectsPage() {
             maxWidth: "600px",
             lineHeight: 1.6
           }}>
-            Select a subject below to continue your journey. Explore free previews or unlock full access.
+            {isAuthenticated
+              ? "Continue your journey or explore new courses below."
+              : "Select a subject below to continue your journey. Explore free previews or unlock full access."}
           </p>
         </div>
+
+        {/* Feature 1 — Progress Dashboard */}
+        {isAuthenticated && subjects.length > 0 && (
+          <div className="dashboard-grid">
+            <div className="dashboard-card">
+              <div className="dashboard-icon" style={{ background: "#dbeafe" }}>📚</div>
+              <div className="dashboard-title">Courses Enrolled</div>
+              <div className="dashboard-number">{coursesEnrolled}</div>
+            </div>
+            <div className="dashboard-card">
+              <div className="dashboard-icon" style={{ background: "#d1fae5" }}>✅</div>
+              <div className="dashboard-title">Lessons Completed</div>
+              <div className="dashboard-number">{lessonsCompleted}</div>
+            </div>
+            <div className="dashboard-card">
+              <div className="dashboard-icon" style={{ background: "#ede9fe" }}>📊</div>
+              <div className="dashboard-title">Total Progress</div>
+              <div className="dashboard-number">{totalProgress}%</div>
+            </div>
+          </div>
+        )}
 
         {/* Subjects Grid — API subjects */}
         {subjects.length === 0 && UPCOMING_SUBJECTS.length === 0 ? (
@@ -238,19 +273,45 @@ export default function SubjectsPage() {
           </div>
         )}
 
-        {/* Roadmap divider */}
-        {subjects.length > 0 && (
-          <div style={{
-            textAlign: "center",
-            marginTop: "60px",
-            padding: "24px 0",
-            borderTop: "1px solid #e5e7eb",
-          }}>
-            <p style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "0.06em" }}>
-              More courses coming soon — stay tuned for updates
-            </p>
+        {/* Feature 2 — Learning Roadmap */}
+        {allRoadmapItems.length > 0 && (
+          <div className="roadmap-container">
+            <h2 className="roadmap-header">🗺️ Learning Roadmap</h2>
+            {allRoadmapItems.map((item, idx) => (
+              <div key={item.title}>
+                <div className={`roadmap-item ${item.status === "upcoming" ? "roadmap-upcoming" : ""}`}>
+                  <div className={`roadmap-dot ${item.status}`} />
+                  <div>
+                    <div className="roadmap-title">
+                      {item.title}
+                      {item.status === "upcoming" && (
+                        <span style={{ fontSize: "11px", color: "#9ca3af", marginLeft: 8, fontWeight: 400 }}>
+                          Coming Soon
+                        </span>
+                      )}
+                    </div>
+                    <div className="roadmap-subtitle">
+                      {item.status === "completed" ? "✓ Completed" : item.status === "active" ? "In Progress" : "Upcoming"}
+                    </div>
+                  </div>
+                </div>
+                {idx < allRoadmapItems.length - 1 && <div className="roadmap-line" />}
+              </div>
+            ))}
           </div>
         )}
+
+        {/* Roadmap divider */}
+        <div style={{
+          textAlign: "center",
+          marginTop: "20px",
+          padding: "24px 0",
+          borderTop: "1px solid #e5e7eb",
+        }}>
+          <p style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "0.06em" }}>
+            More courses coming soon — stay tuned for updates
+          </p>
+        </div>
       </div>
 
       {/* Brand Footer */}
@@ -272,4 +333,3 @@ export default function SubjectsPage() {
     </div>
   );
 }
-

@@ -40,6 +40,10 @@ export default function CoursePage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // AI Summary state
+  const [summaryText, setSummaryText] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+
   // Flatten lessons for navigation and progress
   const flatLessons = sections.flatMap((s) => s.lessons);
   const currentIndex = flatLessons.findIndex((l) => l.id === currentLesson?.id);
@@ -392,16 +396,102 @@ export default function CoursePage() {
               </div>
             </div>
 
+            {/* Feature 3 — AI Summary Panel */}
+            {summaryText && (
+              <div className="summary-box">
+                <div className="summary-title">✨ Lesson Summary</div>
+                <div className="summary-content">
+                  {summaryText}
+                </div>
+                {/* Feature 4 — AI Quick Actions */}
+                <div className="ai-action-grid">
+                  <button
+                    className="ai-action-button"
+                    onClick={() => {
+                      setSummaryLoading(true);
+                      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
+                      fetch(`${apiBase}/api/chatbot/message`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: `Explain this in simpler terms: ${currentLesson.title}` }),
+                      }).then(r => r.json()).then(data => {
+                        setSummaryText(data?.data?.reply || data?.reply || summaryText);
+                      }).catch(() => { }).finally(() => setSummaryLoading(false));
+                    }}
+                  >
+                    Explain Simpler
+                  </button>
+                  <button
+                    className="ai-action-button"
+                    onClick={() => {
+                      setSummaryLoading(true);
+                      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
+                      fetch(`${apiBase}/api/chatbot/message`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: `Give interview tips for: ${currentLesson.title}` }),
+                      }).then(r => r.json()).then(data => {
+                        setSummaryText(data?.data?.reply || data?.reply || summaryText);
+                      }).catch(() => { }).finally(() => setSummaryLoading(false));
+                    }}
+                  >
+                    Give Interview Tips
+                  </button>
+                  <button
+                    className="ai-action-button"
+                    onClick={() => {
+                      setSummaryLoading(true);
+                      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
+                      fetch(`${apiBase}/api/chatbot/message`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: `Show real world example for: ${currentLesson.title}` }),
+                      }).then(r => r.json()).then(data => {
+                        setSummaryText(data?.data?.reply || data?.reply || summaryText);
+                      }).catch(() => { }).finally(() => setSummaryLoading(false));
+                    }}
+                  >
+                    Show Real World Example
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Step 5 — Action Buttons */}
             <div className="lesson-actions">
-              <MarkCompleteButton
-                key={currentLesson.id}
-                lessonId={currentLesson.id}
-                initialCompleted={completedLessons.includes(currentLesson.id)}
-                onComplete={handleMarkComplete}
-                isAuthenticated={isLoggedIn}
-                onRequireAuth={() => setShowLoginModal(true)}
-              />
+              <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+                <MarkCompleteButton
+                  key={currentLesson.id}
+                  lessonId={currentLesson.id}
+                  initialCompleted={completedLessons.includes(currentLesson.id)}
+                  onComplete={handleMarkComplete}
+                  isAuthenticated={isLoggedIn}
+                  onRequireAuth={() => setShowLoginModal(true)}
+                />
+                <button
+                  className="generate-summary-btn"
+                  disabled={summaryLoading}
+                  onClick={async () => {
+                    setSummaryLoading(true);
+                    try {
+                      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
+                      const res = await fetch(`${apiBase}/api/chatbot/message`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ message: `Give a short summary of: ${currentLesson.title}` }),
+                      });
+                      const data = await res.json();
+                      setSummaryText(data?.data?.reply || data?.reply || "Summary not available.");
+                    } catch {
+                      setSummaryText("Could not generate summary. Try again later.");
+                    } finally {
+                      setSummaryLoading(false);
+                    }
+                  }}
+                >
+                  {summaryLoading ? "Generating..." : "✨ Generate AI Summary"}
+                </button>
+              </div>
               <div onClick={handleNextButtonClick}>
                 <NextLessonButton
                   lessons={flatLessons}

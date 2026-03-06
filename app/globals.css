@@ -2,6 +2,205 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Dashboard ────────────────────────────────────────────────────────── */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (max-width: 700px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.25s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.dashboard-title {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.dashboard-number {
+  font-size: 28px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ── Learning Roadmap ─────────────────────────────────────────────────── */
+
+.roadmap-container {
+  margin-top: 48px;
+  margin-bottom: 40px;
+}
+
+.roadmap-header {
+  font-size: 22px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 24px;
+}
+
+.roadmap-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.roadmap-item:hover {
+  background: #f9fafb;
+}
+
+.roadmap-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  flex-shrink: 0;
+}
+
+.roadmap-dot.upcoming {
+  background: #d1d5db;
+}
+
+.roadmap-dot.completed {
+  background: #16a34a;
+}
+
+.roadmap-line {
+  width: 2px;
+  height: 32px;
+  background: #e5e7eb;
+  margin-left: 21px;
+}
+
+.roadmap-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.roadmap-subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.roadmap-upcoming {
+  opacity: 0.6;
+}
+
+/* ── AI Summary ───────────────────────────────────────────────────────── */
+
+.summary-box {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+}
+
+.summary-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 10px;
+  color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-content {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.summary-content li {
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.ai-action-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.ai-action-button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ai-action-button:hover {
+  background: #f1f5f9;
+  border-color: #6366f1;
+  color: #6366f1;
+}
+
+.generate-summary-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  font-weight: 600;
+  font-size: 14px;
+  color: #6366f1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.generate-summary-btn:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+  transform: translateY(-1px);
+}
+
+.generate-summary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ── Chatbot UI ───────────────────────────────────────────────────────── */
 
 /* Step 1 — Modal Container */
