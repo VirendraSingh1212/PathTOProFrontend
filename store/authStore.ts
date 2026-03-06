@@ -40,8 +40,11 @@ export const useAuthStore = create<AuthState>()(
             hydrateAuth: async () => {
                 try {
                     set({ authLoading: true });
-                    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com';
-                    const res = await fetch(`${apiBase}/api/auth/me`, {
+                    const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
+                    const cleanUrl = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
+                    const apiBase = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+
+                    const res = await fetch(`${apiBase}/auth/me`, {
                         credentials: "include"
                     });
 
