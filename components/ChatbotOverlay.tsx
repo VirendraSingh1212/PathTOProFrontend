@@ -10,9 +10,10 @@ type Props = {
 };
 
 const SUGGESTIONS = [
-    "Show my progress",
-    "How to mark complete",
-    "Resume learning"
+    "Explain this topic",
+    "Give a short summary",
+    "Help me understand this concept",
+    "What should I learn next?"
 ];
 
 export default function ChatbotOverlay({ open, onClose }: Props) {
@@ -24,16 +25,9 @@ export default function ChatbotOverlay({ open, onClose }: Props) {
 
     useEffect(() => {
         if (open) {
-            if (messages.length === 0) {
-                setMessages([{
-                    id: 'init-msg',
-                    from: "bot",
-                    text: "Have doubt? Ask me anything — try: 'Resume learning', 'Show my progress', 'How to mark complete'."
-                }]);
-            }
             setTimeout(() => inputRef.current?.focus(), 100);
         }
-    }, [open, messages.length]);
+    }, [open]);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -79,111 +73,128 @@ export default function ChatbotOverlay({ open, onClose }: Props) {
 
     const handleSuggestionClick = (suggestion: string) => {
         if (loading) return;
-        setText(suggestion);
-        inputRef.current?.focus();
+        send(suggestion);
     };
 
     if (!open) return null;
 
     return (
         <div
-            className="fixed inset-0 flex justify-center z-[1200] p-4 pt-[6vh]"
-            style={{ background: "rgba(10,10,10,0.98)" }}
+            style={{
+                position: "fixed",
+                inset: 0,
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "center",
+                paddingTop: "6vh",
+                zIndex: 1200,
+                background: "rgba(0,0,0,0.85)",
+                backdropFilter: "blur(4px)",
+            }}
             role="dialog"
             aria-modal="true"
             onClick={onClose}
         >
-            <div
-                className="w-full max-w-[980px] mx-auto flex flex-col bg-[#111111] border border-white/10 rounded-xl text-white shadow-2xl overflow-hidden relative"
-                style={{ height: "70vh" }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button
-                    onClick={onClose}
-                    className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors z-10"
-                    aria-label="Close"
-                >
-                    ✕
-                </button>
+            {/* Step 1 — Modal */}
+            <div className="chatbot-modal" onClick={(e) => e.stopPropagation()}>
 
-                <div className="flex flex-col items-center justify-center p-8 border-b border-white/5">
-                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-2xl mb-3">
-                        🤖
+                {/* Step 2 — Header */}
+                <div className="chatbot-header">
+                    <div style={{ display: "flex", alignItems: "center" }}>
+                        {/* Step 4 — Avatar */}
+                        <div className="chatbot-avatar">🤖</div>
+                        {/* Step 3 — Identity */}
+                        <div>
+                            <div className="chatbot-title">PathToPro AI Assistant</div>
+                            <div className="chatbot-subtitle">
+                                {loading ? "Thinking..." : "Your personal learning guide"}
+                            </div>
+                        </div>
                     </div>
-                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-100 to-gray-400">
-                        Ready when you are.
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-2 text-center max-w-md">
-                        Ask me anything about your courses, lessons, or progress.
-                    </p>
-
-                    <div className="flex flex-wrap gap-2 justify-center mt-5">
-                        {SUGGESTIONS.map(s => (
-                            <button
-                                key={s}
-                                onClick={() => handleSuggestionClick(s)}
-                                className="bg-white/5 border border-white/10 hover:bg-white/10 text-xs px-3 py-1.5 rounded-full transition-colors text-gray-300"
-                            >
-                                {s}
-                            </button>
-                        ))}
-                    </div>
+                    {/* Step 5 — Close */}
+                    <button className="chatbot-close" onClick={onClose} aria-label="Close">✕</button>
                 </div>
 
-                <div className="flex-1 overflow-auto p-6 flex flex-col gap-5 bg-[#0a0a0a]" ref={scrollRef}>
+                {/* Step 6 — Body */}
+                <div className="chatbot-body" ref={scrollRef}>
+
+                    {/* Step 9 — Context */}
+                    <div className="chatbot-context">
+                        💡 Ask me anything about your current lesson or course
+                    </div>
+
+                    {/* Step 7 — Starter (only when no messages) */}
+                    {messages.length === 0 && !loading && (
+                        <div className="chatbot-starter">
+                            <h3>Ask me anything about this lesson</h3>
+                            <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "14px" }}>
+                                I can explain concepts, summarize topics, or help you understand tricky parts.
+                            </p>
+                            {/* Step 8 — Suggestions */}
+                            <div className="chatbot-suggestions">
+                                {SUGGESTIONS.map((s) => (
+                                    <button
+                                        key={s}
+                                        className="suggestion-pill"
+                                        onClick={() => handleSuggestionClick(s)}
+                                    >
+                                        {s}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 13 — Messages */}
                     {messages.map((m) => (
                         <div
                             key={m.id}
-                            className={`flex flex-col max-w-[85%] ${m.from === "user" ? "self-end items-end" : "self-start items-start"
-                                }`}
+                            className={m.from === "user" ? "user-message" : "assistant-message"}
                         >
-                            <div
-                                className={`py-2.5 px-4 rounded-2xl text-[15px] leading-relaxed ${m.from === "user"
-                                        ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-br-sm shadow-md"
-                                        : "bg-[#18181b] text-gray-200 rounded-bl-sm border border-white/5"
-                                    }`}
-                            >
-                                {m.text}
-                            </div>
+                            {m.text}
                         </div>
                     ))}
+
+                    {/* Step 12 — Typing Indicator */}
                     {loading && (
-                        <div className="self-start items-start flex flex-col max-w-[80%]">
-                            <div className="py-2.5 px-4 rounded-2xl bg-[#18181b] text-gray-200 rounded-bl-sm border border-white/5 flex gap-1.5 items-center h-10">
-                                <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                                <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                                <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                            </div>
+                        <div className="chatbot-typing">
+                            <span>PathToPro Assistant is thinking</span>
+                            <span className="dot" />
+                            <span className="dot" />
+                            <span className="dot" />
                         </div>
                     )}
                 </div>
 
-                <div className="p-4 bg-[#111]">
-                    <div className="relative max-w-4xl mx-auto flex items-center bg-[#1a1a1a] rounded-xl border border-white/5 focus-within:border-white/20 transition-colors">
-                        <input
-                            ref={inputRef}
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    send();
-                                }
-                            }}
-                            placeholder="Message PathToPro Assistant..."
-                            className="flex-1 bg-transparent border-none outline-none text-white px-5 py-4 text-[15px] placeholder:text-gray-500"
-                            disabled={loading}
-                            aria-label="Chat input"
-                        />
-                        <button
-                            onClick={() => send()}
-                            disabled={loading || !text.trim()}
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white text-black w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-30 disabled:hover:bg-white"
-                            aria-label="Send message"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
-                        </button>
-                    </div>
+                {/* Step 10 — Input */}
+                <div className="chatbot-input-container">
+                    <input
+                        ref={inputRef}
+                        className="chatbot-input"
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                send();
+                            }
+                        }}
+                        placeholder="Message PathToPro Assistant..."
+                        disabled={loading}
+                        aria-label="Chat input"
+                    />
+                    {/* Step 11 — Send */}
+                    <button
+                        className="send-button"
+                        onClick={() => send()}
+                        disabled={loading || !text.trim()}
+                        aria-label="Send message"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="19" x2="12" y2="5" />
+                            <polyline points="5 12 12 5 19 12" />
+                        </svg>
+                    </button>
                 </div>
             </div>
         </div>

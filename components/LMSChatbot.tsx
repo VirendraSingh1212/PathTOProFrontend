@@ -4,13 +4,12 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 
 /**
- * LMS Chatbot – ChatGPT-style full-screen dark UI (Stage 3)
+ * LMS Chatbot – Modern dark overlay AI assistant
  *
  * Behavior:
- * - Floating 💬 button (bottom-right) opens a centered full-screen dark overlay.
- * - Matches user messages against keyword-based intent rules.
- * - Offers quick-action buttons below bot responses.
- * - Quick actions navigate safely: if not logged in (no token), redirects to /login.
+ * - Floating 💬 button (bottom-right) opens a centered modal overlay.
+ * - Sends messages to backend AI endpoint.
+ * - Quick-action buttons navigate safely.
  * - Persists conversation in sessionStorage.
  */
 
@@ -21,8 +20,14 @@ type Message = {
   actions?: { id: string; label: string; action: string }[];
 };
 
-
 const uid = () => Math.random().toString(36).slice(2, 9);
+
+const QUICK_PROMPTS = [
+  "Explain this topic",
+  "Give a short summary",
+  "How to mark complete",
+  "What should I learn next?",
+];
 
 export default function LMSChatbot() {
   const router = useRouter();
@@ -49,7 +54,6 @@ export default function LMSChatbot() {
     }
   }, [messages]);
 
-  // Focus input when chat opens
   useEffect(() => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -91,7 +95,6 @@ export default function LMSChatbot() {
   async function sendToBackend(text: string) {
     setIsTyping(true);
     try {
-      // Use the stable backend endpoint
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
       const response = await fetch(`${apiBase}/api/chatbot/message`, {
         method: "POST",
@@ -102,7 +105,6 @@ export default function LMSChatbot() {
       const reply = data?.data?.reply || "I couldn't generate a response.";
       pushMessage({ id: uid(), sender: "bot", text: reply });
     } catch {
-      // Graceful error handling - no UI crash
       pushMessage({
         id: uid(),
         sender: "bot",
@@ -116,24 +118,10 @@ export default function LMSChatbot() {
   async function handleSend() {
     const text = input.trim();
     if (!text || isTyping) return;
-
     pushMessage({ id: uid(), sender: "user", text });
     setInput("");
     await sendToBackend(text);
   }
-
-  const QUICK_PROMPTS = [
-    "Show courses",
-    "How progress works",
-    "How to mark complete",
-    "Resume learning",
-  ];
-
-  /* ─── TAILWIND NOTE ────────────────────────────────────────────────────
-     The component uses only core Tailwind utilities that are already
-     generated in your project via @tailwind base/components/utilities.
-     No new config changes are needed.
-  ─────────────────────────────────────────────────────────────────────── */
 
   return (
     <>
@@ -141,92 +129,87 @@ export default function LMSChatbot() {
       <button
         aria-label="Open PathToPro chat assistant"
         onClick={() => setOpen((o) => !o)}
-        style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-2xl
-                   flex items-center justify-center text-white text-2xl
-                   hover:scale-110 active:scale-95 transition-transform duration-200"
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          zIndex: 1100,
+          width: 56,
+          height: 56,
+          borderRadius: "50%",
+          border: "none",
+          background: "linear-gradient(135deg, #6366f1, #3b82f6)",
+          color: "white",
+          fontSize: 24,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 8px 24px rgba(99,102,241,0.4)",
+          transition: "transform 0.2s ease",
+        }}
       >
         {open ? "✕" : "💬"}
       </button>
 
-      {/* ── Full-Screen Chat Overlay ── */}
+      {/* ── Chat Modal Overlay ── */}
       {open && (
         <div
-          className="fixed inset-0 z-40 flex flex-col"
-          style={{ background: "#0d0d0d" }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1200,
+            display: "flex",
+            alignItems: "flex-start",
+            justifyContent: "center",
+            paddingTop: "6vh",
+            background: "rgba(0,0,0,0.85)",
+            backdropFilter: "blur(4px)",
+          }}
+          onClick={() => setOpen(false)}
         >
-          {/* ── Header ── */}
-          <div
-            className="flex items-center justify-between px-6 py-4 border-b"
-            style={{ borderColor: "#1f1f1f" }}
-          >
-            <div className="flex items-center gap-3">
-              {/* Avatar */}
-              <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
-                style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
-              >
-                🤖
+          <div className="chatbot-modal" onClick={(e) => e.stopPropagation()}>
+
+            {/* Header */}
+            <div className="chatbot-header">
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <div className="chatbot-avatar">🤖</div>
+                <div>
+                  <div className="chatbot-title">PathToPro AI Assistant</div>
+                  <div className="chatbot-subtitle">
+                    {isTyping ? "Thinking..." : "Your personal learning guide"}
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-white font-semibold text-sm leading-none">PathToPro Assistant</p>
-                <p className="text-xs mt-0.5" style={{ color: "#a3a3a3" }}>
-                  {isTyping ? "Typing…" : "Online"}
-                </p>
-              </div>
+              <button className="chatbot-close" onClick={() => setOpen(false)} aria-label="Close">
+                ✕
+              </button>
             </div>
 
-            <button
-              aria-label="Close chat"
-              onClick={() => setOpen(false)}
-              className="w-8 h-8 rounded-full flex items-center justify-center
-                         text-white text-sm hover:bg-white/10 transition-colors"
-            >
-              ✕
-            </button>
-          </div>
+            {/* Body */}
+            <div className="chatbot-body" ref={scrollRef}>
+              <div className="chatbot-context">
+                💡 Ask me anything about your courses, lessons, or progress
+              </div>
 
-          {/* ── Message Area ── */}
-          <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto px-4 py-6"
-            style={{ scrollbarWidth: "thin", scrollbarColor: "#333 transparent" }}
-          >
-            <div className="max-w-2xl mx-auto space-y-5">
-
-              {/* Empty state */}
+              {/* Starter (empty state) */}
               {messages.length === 0 && !isTyping && (
-                <div className="flex flex-col items-center justify-center h-full pt-24 gap-6 text-center">
-                  <div
-                    className="w-16 h-16 rounded-full flex items-center justify-center text-3xl"
-                    style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
-                  >
-                    🤖
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-semibold text-white mb-2">
-                      Ready when you are.
-                    </h2>
-                    <p style={{ color: "#737373" }} className="text-sm">
-                      Ask me anything about your courses, lessons, or progress.
-                    </p>
-                  </div>
-
-                  {/* Quick prompts in empty state */}
-                  <div className="flex flex-wrap justify-center gap-2 mt-2">
+                <div className="chatbot-starter">
+                  <h3>Ask me anything about this lesson</h3>
+                  <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "14px" }}>
+                    I can explain concepts, summarize topics, or help you with your learning path.
+                  </p>
+                  <div className="chatbot-suggestions">
                     {QUICK_PROMPTS.map((q) => (
                       <button
                         key={q}
+                        className="suggestion-pill"
                         onClick={() => {
                           if (isTyping) return;
-                          const text = q.trim();
-                          if (!text) return;
-                          pushMessage({ id: uid(), sender: "user", text });
+                          pushMessage({ id: uid(), sender: "user", text: q });
                           setInput("");
-                          sendToBackend(text);
+                          sendToBackend(q);
                         }}
-                        className="px-4 py-2 rounded-full text-sm border hover:bg-white/5 transition-colors"
-                        style={{ borderColor: "#292929", color: "#d4d4d4" }}
                       >
                         {q}
                       </button>
@@ -237,140 +220,75 @@ export default function LMSChatbot() {
 
               {/* Messages */}
               {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex gap-3 ${m.sender === "user" ? "flex-row-reverse" : "flex-row"}`}
-                >
-                  {/* Avatar */}
-                  <div
-                    className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-semibold"
-                    style={
-                      m.sender === "bot"
-                        ? { background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)", color: "#fff" }
-                        : { background: "#1f1f1f", color: "#a3a3a3" }
-                    }
-                  >
-                    {m.sender === "bot" ? "🤖" : "👤"}
+                <div key={m.id}>
+                  <div className={m.sender === "user" ? "user-message" : "assistant-message"}>
+                    {m.text}
                   </div>
-
-                  <div className={`flex flex-col gap-2 max-w-[75%] ${m.sender === "user" ? "items-end" : "items-start"}`}>
-                    {/* Bubble */}
-                    <div
-                      className="px-4 py-3 rounded-2xl text-sm leading-relaxed"
-                      style={
-                        m.sender === "user"
-                          ? { background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)", color: "#fff", borderBottomRightRadius: 4 }
-                          : { background: "#1a1a1a", color: "#e5e5e5", borderBottomLeftRadius: 4, border: "1px solid #262626" }
-                      }
-                    >
-                      {m.text}
+                  {/* Action buttons for bot messages */}
+                  {m.sender === "bot" && m.actions && m.actions.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, alignSelf: "flex-start" }}>
+                      {m.actions.map((a) => (
+                        <button
+                          key={a.id}
+                          className="suggestion-pill"
+                          onClick={() => handleAction(a.action)}
+                          style={{ fontSize: "12px", color: "#a78bfa" }}
+                        >
+                          {a.label}
+                        </button>
+                      ))}
                     </div>
-
-                    {/* Action buttons for bot messages */}
-                    {m.sender === "bot" && m.actions && m.actions.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {m.actions.map((a) => (
-                          <button
-                            key={a.id}
-                            onClick={() => handleAction(a.action)}
-                            className="text-xs px-3 py-1.5 rounded-full border
-                                       hover:bg-indigo-500/10 hover:border-indigo-500/60
-                                       transition-colors"
-                            style={{ borderColor: "#404040", color: "#a78bfa" }}
-                          >
-                            {a.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
               ))}
 
               {/* Typing indicator */}
               {isTyping && (
-                <div className="flex gap-3">
-                  <div
-                    className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm"
-                    style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
-                  >
-                    🤖
-                  </div>
-                  <div
-                    className="px-4 py-3 rounded-2xl flex items-center gap-1"
-                    style={{ background: "#1a1a1a", border: "1px solid #262626", borderBottomLeftRadius: 4 }}
-                  >
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="w-2 h-2 rounded-full"
-                        style={{
-                          background: "#6366f1",
-                          display: "inline-block",
-                          animation: `bounce 1.2s infinite`,
-                          animationDelay: `${i * 0.2}s`,
-                        }}
-                      />
-                    ))}
-                  </div>
+                <div className="chatbot-typing">
+                  <span>PathToPro Assistant is thinking</span>
+                  <span className="dot" />
+                  <span className="dot" />
+                  <span className="dot" />
                 </div>
               )}
             </div>
-          </div>
 
-          {/* ── Input Bar ── */}
-          <div
-            className="px-4 pb-6 pt-3"
-            style={{ borderTop: "1px solid #1f1f1f" }}
-          >
-            <div className="max-w-2xl mx-auto">
-              <div
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl"
-                style={{ background: "#1a1a1a", border: "1px solid #2a2a2a" }}
+            {/* Input */}
+            <div className="chatbot-input-container">
+              <input
+                ref={inputRef}
+                className="chatbot-input"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                  }
+                }}
+                placeholder="Ask anything about your courses..."
+                disabled={isTyping}
+              />
+              <button
+                className="send-button"
+                onClick={handleSend}
+                disabled={!input.trim() || isTyping}
+                aria-label="Send message"
               >
-                <input
-                  ref={inputRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSend();
-                    }
-                  }}
-                  placeholder="Ask anything about your courses..."
-                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-neutral-600"
-                  style={{ color: "#e5e5e5" }}
-                  disabled={isTyping}
-                />
-                <button
-                  onClick={handleSend}
-                  disabled={!input.trim() || isTyping}
-                  className="w-9 h-9 rounded-xl flex items-center justify-center
-                             text-white text-sm font-medium transition-all
-                             disabled:opacity-30 disabled:cursor-not-allowed
-                             hover:scale-105 active:scale-95"
-                  style={{ background: "linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)" }}
-                  aria-label="Send message"
-                >
-                  ↑
-                </button>
-              </div>
-              <p className="text-center text-xs mt-2" style={{ color: "#404040" }}>
-                PathToPro Assistant · Course help only
-              </p>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="19" x2="12" y2="5" />
+                  <polyline points="5 12 12 5 19 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div style={{ textAlign: "center", padding: "0 0 12px", fontSize: "11px", color: "#333" }}>
+              PathToPro Assistant · Course help only
             </div>
           </div>
         </div>
       )}
-
-      {/* Bounce keyframes for typing dots */}
-      <style>{`
-        @keyframes bounce {
-          0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-          30%            { transform: translateY(-5px); opacity: 1; }
-        }
-      `}</style>
     </>
   );
 }
