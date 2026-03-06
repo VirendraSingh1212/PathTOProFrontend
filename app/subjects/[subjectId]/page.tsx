@@ -49,7 +49,9 @@ export default function CoursePage() {
   useEffect(() => {
     async function loadCourse() {
       try {
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
+        const apiBase = process.env.NEXT_PUBLIC_API_URL
+          ? `${process.env.NEXT_PUBLIC_API_URL}/api`
+          : 'https://pathtopro-backend.onrender.com/api';
 
         const res = await fetch(`${apiBase}/subjects/${subjectId}/tree`, {
           cache: "no-store",
