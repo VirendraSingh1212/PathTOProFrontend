@@ -113,6 +113,61 @@ export default function SubjectsPage() {
     );
   }
 
+  // Hardcoded upcoming subjects for roadmap display
+  const UPCOMING_SUBJECTS: Subject[] = [
+    {
+      id: "upcoming-ml",
+      title: "Machine Learning",
+      description: "Learn ML fundamentals — regression, classification, neural networks, and real-world applications.",
+      status: "coming-soon",
+      progressPercent: 0,
+    },
+    {
+      id: "upcoming-devops",
+      title: "DevOps Engineering",
+      description: "Master CI/CD pipelines, Docker, Kubernetes, and infrastructure automation.",
+      status: "coming-soon",
+      progressPercent: 0,
+    },
+    {
+      id: "upcoming-cloud",
+      title: "Cloud Computing",
+      description: "AWS, Azure, GCP essentials — deploy, scale, and manage cloud infrastructure.",
+      status: "coming-soon",
+      progressPercent: 0,
+    },
+    {
+      id: "upcoming-cyber",
+      title: "Cyber Security",
+      description: "Network security, ethical hacking, threat analysis, and security best practices.",
+      status: "coming-soon",
+      progressPercent: 0,
+    },
+    {
+      id: "upcoming-mobile",
+      title: "Mobile App Development",
+      description: "Build cross-platform apps with React Native and Flutter from scratch.",
+      status: "coming-soon",
+      progressPercent: 0,
+    },
+    {
+      id: "upcoming-ai",
+      title: "AI Engineering",
+      description: "Prompt engineering, LLM fine-tuning, RAG pipelines, and AI-powered applications.",
+      status: "coming-soon",
+      progressPercent: 0,
+    },
+  ];
+
+  const UPCOMING_COVERS = [
+    "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=600&q=80",
+    "https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=600&q=80",
+    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80",
+    "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80",
+    "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&q=80",
+    "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=600&q=80",
+  ];
+
   return (
     <div className="learning-container">
       <div className="learning-inner">
@@ -137,8 +192,8 @@ export default function SubjectsPage() {
           </p>
         </div>
 
-        {/* Subjects Grid */}
-        {subjects.length === 0 ? (
+        {/* Subjects Grid — API subjects */}
+        {subjects.length === 0 && UPCOMING_SUBJECTS.length === 0 ? (
           <div style={{
             textAlign: "center",
             padding: "80px 20px",
@@ -152,6 +207,7 @@ export default function SubjectsPage() {
           </div>
         ) : (
           <div className="subject-grid">
+            {/* Live subjects from API */}
             {subjects.map((subject, index) => {
               const FALLBACK_COVERS = [
                 "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
@@ -169,8 +225,43 @@ export default function SubjectsPage() {
                 />
               );
             })}
+
+            {/* Upcoming "Coming Soon" subjects */}
+            {UPCOMING_SUBJECTS.map((subject, index) => (
+              <SubjectCard
+                key={subject.id}
+                subject={subject}
+                fallbackImage={UPCOMING_COVERS[index % UPCOMING_COVERS.length]}
+                onOpen={handleSubjectClick}
+              />
+            ))}
           </div>
         )}
+
+        {/* Roadmap divider */}
+        {subjects.length > 0 && (
+          <div style={{
+            textAlign: "center",
+            marginTop: "60px",
+            padding: "24px 0",
+            borderTop: "1px solid #e5e7eb",
+          }}>
+            <p style={{ fontSize: "13px", color: "#9ca3af", letterSpacing: "0.06em" }}>
+              More courses coming soon — stay tuned for updates
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Brand Footer */}
+      <div style={{
+        textAlign: "center",
+        padding: "32px 0 24px",
+        fontSize: "14px",
+        color: "#9ca3af",
+        letterSpacing: "0.5px",
+      }}>
+        #PathToPro
       </div>
 
       <ProtectedActionModal
@@ -181,3 +272,4 @@ export default function SubjectsPage() {
     </div>
   );
 }
+
