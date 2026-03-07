@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { typeWriter } from "@/utils/typewriter";
 
 /**
  * LMS Chatbot – Modern dark overlay AI assistant
@@ -28,6 +29,14 @@ const QUICK_PROMPTS = [
   "How to mark complete",
   "What should I learn next?",
 ];
+
+function BotMessage({ text }: { text: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    typeWriter(ref.current, text, 15);
+  }, [text]);
+  return <div ref={ref} className="assistant-message" />;
+}
 
 export default function LMSChatbot() {
   const router = useRouter();
@@ -221,9 +230,11 @@ export default function LMSChatbot() {
               {/* Messages */}
               {messages.map((m) => (
                 <div key={m.id}>
-                  <div className={m.sender === "user" ? "user-message" : "assistant-message"}>
-                    {m.text}
-                  </div>
+                  {m.sender === "user" ? (
+                    <div className="user-message">{m.text}</div>
+                  ) : (
+                    <BotMessage text={m.text} />
+                  )}
                   {/* Action buttons for bot messages */}
                   {m.sender === "bot" && m.actions && m.actions.length > 0 && (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, alignSelf: "flex-start" }}>
@@ -244,11 +255,10 @@ export default function LMSChatbot() {
 
               {/* Typing indicator */}
               {isTyping && (
-                <div className="chatbot-typing">
-                  <span>PathToPro Assistant is thinking</span>
-                  <span className="dot" />
-                  <span className="dot" />
-                  <span className="dot" />
+                <div className="typing-indicator" style={{ marginLeft: 8, marginTop: 8 }}>
+                  <span />
+                  <span />
+                  <span />
                 </div>
               )}
             </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useAuthStore } from "@/store/authStore";
-import { Home, Search, Bell } from "lucide-react";
+import { HomeIcon, MagnifyingGlassIcon, BellIcon } from "@/lib/icons";
 
 export default function Header() {
     const { user } = useAuthStore();
@@ -21,11 +21,11 @@ export default function Header() {
             {/* Left */}
             <div className="ds-header-left">
                 <Link href="/" className="ds-header-home" title="Home">
-                    <Home size={18} />
+                    <HomeIcon className="block" width={18} height={18} />
                 </Link>
 
                 <div className="ds-header-search">
-                    <Search className="ds-header-search-icon" />
+                    <MagnifyingGlassIcon className="ds-header-search-icon block" width={18} height={18} />
                     <input type="text" placeholder="Search courses, lessons..." />
                 </div>
             </div>
@@ -33,7 +33,7 @@ export default function Header() {
             {/* Right */}
             <div className="ds-header-right">
                 <button className="ds-header-bell" aria-label="Notifications">
-                    <Bell size={20} />
+                    <BellIcon className="block" width={20} height={20} />
                     <span className="ds-header-bell-dot" />
                 </button>
 

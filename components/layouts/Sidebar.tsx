@@ -4,23 +4,23 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import {
-    LayoutDashboard,
-    BookOpen,
-    Map,
-    Bot,
-    ShoppingBag,
-    Settings,
-    LogOut,
-    GraduationCap,
-} from "lucide-react";
+    HomeIcon,
+    BookOpenIcon,
+    CommandLineIcon,
+    SparklesIcon,
+    CreditCardIcon,
+    Cog6ToothIcon,
+    ArrowRightOnRectangleIcon,
+    AcademicCapIcon
+} from "@/lib/icons";
 
 const NAV_ITEMS = [
-    { label: "Dashboard", href: "/subjects", icon: LayoutDashboard },
-    { label: "Courses", href: "/subjects", icon: BookOpen },
-    { label: "Learning Roadmap", href: "/subjects", icon: Map },
-    { label: "AI Assistant", href: "/subjects", icon: Bot },
-    { label: "Purchases", href: "/subjects", icon: ShoppingBag },
-    { label: "Settings", href: "/profile", icon: Settings },
+    { label: "Dashboard", href: "/subjects", icon: HomeIcon },
+    { label: "Courses", href: "/subjects", icon: BookOpenIcon },
+    { label: "Learning Roadmap", href: "/subjects", icon: CommandLineIcon },
+    { label: "AI Assistant", href: "/subjects", icon: SparklesIcon },
+    { label: "Purchases", href: "/subjects", icon: CreditCardIcon },
+    { label: "Settings", href: "/profile", icon: Cog6ToothIcon },
 ];
 
 export default function Sidebar() {
@@ -38,7 +38,7 @@ export default function Sidebar() {
             {/* Logo */}
             <div className="ds-sidebar-logo">
                 <div className="ds-sidebar-logo-icon">
-                    <GraduationCap size={20} />
+                    <AcademicCapIcon width={20} height={20} />
                 </div>
                 <div className="ds-sidebar-logo-text">
                     Path<span>To</span>Pro
@@ -56,9 +56,9 @@ export default function Sidebar() {
                         <Link
                             key={item.label}
                             href={item.href}
-                            className={`ds-sidebar-item${isActive ? " active" : ""}`}
+                            className={`ds-sidebar-item sidebar-item-motion${isActive ? " active" : ""}`}
                         >
-                            <Icon className="ds-sidebar-icon" size={20} />
+                            <Icon className="ds-sidebar-icon block" width={20} height={20} />
                             {item.label}
                         </Link>
                     );
@@ -68,7 +68,7 @@ export default function Sidebar() {
             {/* Footer — Logout */}
             <div className="ds-sidebar-footer">
                 <button className="ds-sidebar-logout" onClick={handleLogout}>
-                    <LogOut className="ds-sidebar-icon" size={20} />
+                    <ArrowRightOnRectangleIcon className="ds-sidebar-icon block" width={20} height={20} />
                     Logout
                 </button>
             </div>
