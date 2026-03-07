@@ -289,17 +289,6 @@ export default function LMSChatbot() {
                               ));
                             }}
                           />
-                          {!isStopped && (
-                            <div className="mt-3 flex justify-end">
-                              <button
-                                onClick={() => setIsStopped(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-[#1a1a1a] border border-[#333] hover:text-white hover:bg-[#2a2a2a] hover:border-gray-500 rounded-lg transition-all"
-                              >
-                                <Square size={10} className="fill-current" />
-                                Stop generating
-                              </button>
-                            </div>
-                          )}
                         </>
                       ) : m.sender === "bot" ? (
                         <div className="prose prose-invert max-w-none text-sm leading-relaxed">
@@ -361,13 +350,29 @@ export default function LMSChatbot() {
                   placeholder="Describe what you want to learn..."
                   disabled={isTyping}
                 />
-                <button
-                  className="absolute right-3 p-2.5 bg-white text-black rounded-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
-                  onClick={handleSend}
-                  disabled={!input.trim() || isTyping}
-                >
-                  <Send size={18} />
-                </button>
+
+                <div className="absolute right-3 flex items-center gap-2">
+                  {/* Stop Button - ONLY SHOWS WHEN TYPING */}
+                  {isTyping && !isStopped && (
+                    <button
+                      className="p-2.5 bg-[#1a1a1a] border border-[#333] text-red-400 rounded-xl hover:bg-[#2a2a2a] hover:text-red-300 hover:scale-105 active:scale-95 transition-all"
+                      onClick={() => setIsStopped(true)}
+                      title="Stop generating"
+                    >
+                      <Square size={18} className="fill-current" />
+                    </button>
+                  )}
+
+                  {/* Send Button */}
+                  <button
+                    className="p-2.5 bg-white text-black rounded-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
+                    onClick={handleSend}
+                    disabled={!input.trim() || isTyping}
+                  >
+                    <Send size={18} />
+                  </button>
+                </div>
+
               </div>
               <div className="mt-4 flex items-center justify-center gap-2">
                 <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
