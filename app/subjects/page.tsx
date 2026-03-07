@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpen, LayoutDashboard, Map, MessageSquare, HelpCircle, Settings, LogOut, User } from "lucide-react";
 import SubjectCard, { Subject } from "@/components/SubjectCard";
+import DashboardView from "@/components/DashboardView";
 import ProtectedActionModal from "@/components/ProtectedActionModal";
 import { useAuthStore } from "@/store/authStore";
 import { API_BASE } from "@/utils/api";
@@ -263,63 +264,53 @@ export default function SubjectsPage() {
           {(activeTab === "courses" || activeTab === "dashboard") ? (
             <>
               {/* Dashboard */}
-              {isAuthenticated && subjects.length > 0 && (
-                <div className="dashboard-grid">
-                  <div className="dashboard-card">
-                    <div className="dashboard-icon" style={{ background: "#f3f4f6" }}>📚</div>
-                    <div className="dashboard-title">Courses Enrolled</div>
-                    <div className="dashboard-number">{coursesEnrolled}</div>
-                  </div>
-                  <div className="dashboard-card">
-                    <div className="dashboard-icon" style={{ background: "#e5e7eb" }}>✅</div>
-                    <div className="dashboard-title">Lessons Completed</div>
-                    <div className="dashboard-number">{lessonsCompleted}</div>
-                  </div>
-                  <div className="dashboard-card">
-                    <div className="dashboard-icon" style={{ background: "#d1d5db" }}>📊</div>
-                    <div className="dashboard-title">Total Progress</div>
-                    <div className="dashboard-number">{totalProgress}%</div>
-                  </div>
+              {isAuthenticated && activeTab === "dashboard" && subjects.length > 0 && (
+                <div className="mt-8">
+                  <DashboardView user={user} subjects={subjects} />
                 </div>
               )}
 
               {/* Subject Cards */}
-              {subjects.length === 0 && UPCOMING_SUBJECTS.length === 0 ? (
-                <div style={{
-                  textAlign: "center", padding: "80px 20px",
-                  background: "white", borderRadius: "16px",
-                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)"
-                }}>
-                  <BookOpen style={{ margin: "0 auto 16px", width: 56, height: 56, color: "#d1d5db" }} />
-                  <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#1f2937", marginBottom: "8px" }}>No Subjects Available</h3>
-                  <p style={{ color: "#9ca3af" }}>Check back later for new courses.</p>
-                </div>
-              ) : (
-                <div className="subject-grid">
-                  {subjects.map((subject, index) => {
-                    const FALLBACK_COVERS = [
-                      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
-                      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80",
-                      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
-                    ];
-                    return (
-                      <SubjectCard
-                        key={subject.id}
-                        subject={subject}
-                        fallbackImage={FALLBACK_COVERS[index % FALLBACK_COVERS.length]}
-                        onOpen={handleSubjectClick}
-                      />
-                    );
-                  })}
-                  {UPCOMING_SUBJECTS.map((subject, index) => (
-                    <SubjectCard
-                      key={subject.id}
-                      subject={subject}
-                      fallbackImage={UPCOMING_COVERS[index % UPCOMING_COVERS.length]}
-                      onOpen={handleSubjectClick}
-                    />
-                  ))}
-                </div>
+              {activeTab === "courses" && (
+                <>
+                  {subjects.length === 0 && UPCOMING_SUBJECTS.length === 0 ? (
+                    <div style={{
+                      textAlign: "center", padding: "80px 20px",
+                      background: "white", borderRadius: "16px",
+                      boxShadow: "0 6px 20px rgba(0,0,0,0.06)"
+                    }}>
+                      <BookOpen style={{ margin: "0 auto 16px", width: 56, height: 56, color: "#d1d5db" }} />
+                      <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#1f2937", marginBottom: "8px" }}>No Subjects Available</h3>
+                      <p style={{ color: "#9ca3af" }}>Check back later for new courses.</p>
+                    </div>
+                  ) : (
+                    <div className="subject-grid">
+                      {subjects.map((subject, index) => {
+                        const FALLBACK_COVERS = [
+                          "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
+                          "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80",
+                          "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
+                        ];
+                        return (
+                          <SubjectCard
+                            key={subject.id}
+                            subject={subject}
+                            fallbackImage={FALLBACK_COVERS[index % FALLBACK_COVERS.length]}
+                            onOpen={handleSubjectClick}
+                          />
+                        );
+                      })}
+                      {UPCOMING_SUBJECTS.map((subject, index) => (
+                        <SubjectCard
+                          key={subject.id}
+                          subject={subject}
+                          fallbackImage={UPCOMING_COVERS[index % UPCOMING_COVERS.length]}
+                          onOpen={handleSubjectClick}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </>
           ) : (

@@ -36,57 +36,70 @@ export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
     const coverSrc = SUBJECT_COVERS[title] ?? subject.thumbnail_url ?? fallbackImage;
 
     return (
-        <div className={`subject-card${disabled ? " opacity-75 pointer-events-auto" : ""}`}>
-            {/* Cover Image */}
-            <img
-                src={coverSrc}
-                alt={title}
-                onError={(e) => { e.currentTarget.src = fallbackImage; }}
-            />
+        <div className={`group relative flex flex-col bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm transition-all duration-500 hover:shadow-2xl hover:shadow-black/5 hover:-translate-y-2 ${disabled ? "opacity-75" : ""}`}>
+            {/* Cover Image Container */}
+            <div className="relative h-48 overflow-hidden">
+                <img
+                    src={coverSrc}
+                    alt={title}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                    onError={(e) => { e.currentTarget.src = fallbackImage; }}
+                />
 
-            {/* Status Badge */}
-            {status === "preview" && (
-                <div style={{
-                    position: "absolute",
-                    top: "12px",
-                    right: "12px",
-                    background: "#000000",
-                    color: "white",
-                    fontSize: "11px",
-                    fontWeight: 700,
-                    padding: "3px 10px",
-                    borderRadius: "999px",
-                    letterSpacing: "0.04em",
-                }}>
-                    FREE PREVIEW
-                </div>
-            )}
+                {/* Subtle Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-            {/* Coming Soon Overlay */}
-            {disabled && <div className="coming-overlay">Coming Soon</div>}
+                {/* Status Badge */}
+                {status === "preview" && (
+                    <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md text-white text-[10px] font-black px-3 py-1 rounded-full tracking-widest uppercase border border-white/10 shadow-xl">
+                        FREE PREVIEW
+                    </div>
+                )}
+
+                {/* Coming Soon Overlay */}
+                {disabled && (
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] flex items-center justify-center">
+                        <div className="bg-white/10 backdrop-blur-lg border border-white/20 px-6 py-2 rounded-full shadow-2xl">
+                            <span className="text-white font-black text-sm tracking-widest uppercase">Coming Soon</span>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             {/* Card Body */}
-            <div style={{ padding: "22px", flex: 1, display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontSize: "18px", fontWeight: 600, marginBottom: "8px", color: "#111827" }}>
-                    {title}
-                </h3>
+            <div className="p-6 flex-1 flex flex-col bg-white relative">
+                <div className="flex items-start justify-between mb-3">
+                    <h3 className="text-xl font-black text-gray-900 leading-tight group-hover:text-black transition-colors">
+                        {title}
+                    </h3>
+                </div>
 
-                <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "20px", lineHeight: 1.5 }}>
+                <p className="text-gray-500 text-sm leading-relaxed mb-6 line-clamp-2">
                     {description}
                 </p>
 
-                <div style={{ marginTop: "auto" }}>
-                    {/* Progress */}
-                    <div style={{ fontSize: "12px", color: "#9ca3af", marginBottom: "6px", fontWeight: 600, letterSpacing: "0.05em" }}>
-                        PROGRESS
-                    </div>
-                    <div style={{ height: "6px", background: "#e5e7eb", borderRadius: "6px", overflow: "hidden", marginBottom: "18px" }}>
-                        <div style={{ width: `${progressPercent}%`, background: "#000000", height: "100%", borderRadius: "6px", transition: "width 0.4s ease" }} />
+                <div className="mt-auto space-y-5">
+                    {/* Progress Section */}
+                    <div>
+                        <div className="flex justify-between items-end mb-2">
+                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Progress</span>
+                            <span className="text-[11px] font-black text-black">{progressPercent}%</span>
+                        </div>
+                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                                className="h-full bg-black rounded-full transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(0,0,0,0.1)]"
+                                style={{ width: `${progressPercent}%` }}
+                            />
+                        </div>
                     </div>
 
-                    {/* CTA Button */}
+                    {/* Action Button */}
                     <button
-                        className="continue-btn"
+                        className={`w-full py-4 rounded-2xl font-black text-xs tracking-widest uppercase transition-all duration-300 transform
+                            ${disabled
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-black text-white hover:bg-gray-900 hover:shadow-black/20 hover:shadow-xl active:scale-[0.98] group-hover:translate-y-[-2px]"
+                            }`}
                         disabled={disabled}
                         onClick={() => !disabled && onOpen(subject)}
                     >

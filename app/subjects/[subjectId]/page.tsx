@@ -10,6 +10,7 @@ import NextLessonButton from "@/components/NextLessonButton";
 import LoginModal from "@/components/LoginModal";
 import { useAuthStore } from "@/store/authStore";
 import { ENDPOINTS } from "@/utils/api";
+import ReactMarkdown from "react-markdown";
 
 
 type Lesson = {
@@ -89,6 +90,7 @@ export default function CoursePage() {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
     localStorage.setItem(`lastLesson-${subjectId}`, lesson.id);
+    setSummaryText(null);
     setCurrentLesson(lesson);
   };
 
@@ -117,6 +119,7 @@ export default function CoursePage() {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
     localStorage.setItem(`lastLesson-${subjectId}`, nextLesson.id);
+    setSummaryText(null);
     setCurrentLesson(nextLesson);
     // Scroll to top of content area
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -372,8 +375,8 @@ export default function CoursePage() {
                   <Sparkles className="w-4 h-4 text-gray-400" />
                   <span className="font-bold text-sm tracking-tight text-gray-900 uppercase tracking-widest text-[10px]">Lesson Summary</span>
                 </div>
-                <div className="text-sm text-gray-600 leading-relaxed font-medium">
-                  {summaryText}
+                <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed font-medium">
+                  <ReactMarkdown>{summaryText}</ReactMarkdown>
                 </div>
               </div>
             )}
