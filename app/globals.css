@@ -80,22 +80,43 @@
   padding: 12px 14px;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   border: none;
   background: transparent;
   width: 100%;
   text-align: left;
   font-size: 14px;
   color: #9ca3af;
-  /* Idle text color */
+  position: relative;
+  overflow: hidden;
 }
 
-.sidebar-item:hover,
+.sidebar-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20%;
+  height: 60%;
+  width: 3px;
+  background: #ffffff;
+  border-radius: 0 4px 4px 0;
+  transform: scaleY(0);
+  transition: transform 0.3s ease;
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
 .sidebar-item.active {
   background: #2d2d2d;
-  /* Lighter off-black highlight */
   color: #ffffff;
-  /* White text on hover/active */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-item.active::before {
+  transform: scaleY(1);
 }
 
 .sidebar-item.coming-soon {

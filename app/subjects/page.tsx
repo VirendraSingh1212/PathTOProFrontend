@@ -160,30 +160,30 @@ export default function SubjectsPage() {
         {/* Quick Stats & Navigation */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
           <button
-            className={`sidebar-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+            className={`sidebar-item group ${activeTab === 'dashboard' ? 'active' : ''}`}
             onClick={() => setActiveTab('dashboard')}
           >
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 transition-transform duration-300 ${activeTab === 'dashboard' ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
               <LayoutDashboard size={18} strokeWidth={2} />
               Dashboard
             </div>
           </button>
 
           <button
-            className={`sidebar-item ${activeTab === 'courses' ? 'active' : ''}`}
+            className={`sidebar-item group ${activeTab === 'courses' ? 'active' : ''}`}
             onClick={() => setActiveTab('courses')}
           >
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 transition-transform duration-300 ${activeTab === 'courses' ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
               <BookOpen size={18} strokeWidth={2} />
               Courses
             </div>
           </button>
 
           <button
-            className={`sidebar-item ${activeTab === 'roadmap' ? 'active' : ''}`}
+            className={`sidebar-item group ${activeTab === 'roadmap' ? 'active' : ''}`}
             onClick={() => setActiveTab('roadmap')}
           >
-            <div className="flex items-center gap-3">
+            <div className={`flex items-center gap-3 transition-transform duration-300 ${activeTab === 'roadmap' ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>
               <Map size={18} strokeWidth={2} />
               Learning Roadmap
             </div>
@@ -244,8 +244,12 @@ export default function SubjectsPage() {
       </aside>
 
       {/* ── Main Content ─────────────────────────────────────────────────── */}
-      <main className="subjects-main">
-        <div style={{ maxWidth: 1400, margin: "0 auto", paddingBottom: "80px" }}>
+      <main className="subjects-main overflow-hidden">
+        <div
+          key={activeTab}
+          className="animate-in fade-in slide-in-from-right-4 duration-700 ease-out fill-mode-both"
+          style={{ maxWidth: 1400, margin: "0 auto", paddingBottom: "80px" }}
+        >
 
           {/* Title */}
           <div style={{ marginBottom: "32px" }}>
