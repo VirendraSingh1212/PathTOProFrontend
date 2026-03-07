@@ -117,7 +117,10 @@ export default function VideoPage({ params }: { params: { subjectId: string; vid
 
     return (
         <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col gap-6">
-            <div className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video w-full relative group">
+            <div
+                className="bg-black rounded-2xl overflow-hidden shadow-2xl aspect-video w-full relative group"
+                data-protected="true"
+            >
                 <VideoPlayer
                     videoId={currentVideo.id}
                     youtubeId={currentVideo.youtube_id}

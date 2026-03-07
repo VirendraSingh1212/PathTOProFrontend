@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 /**
  * LMS Chatbot – Modern dark overlay AI assistant
@@ -31,6 +32,8 @@ const QUICK_PROMPTS = [
 
 export default function LMSChatbot() {
   const router = useRouter();
+  const { isAuthenticated } = useAuthStore();
+
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -60,13 +63,7 @@ export default function LMSChatbot() {
     }
   }, [open]);
 
-  const isAuthenticated = () => {
-    try {
-      return Boolean(localStorage.getItem("token"));
-    } catch {
-      return false;
-    }
-  };
+
 
   function pushMessage(m: Message) {
     setMessages((prev) => [...prev, m]);
@@ -77,7 +74,7 @@ export default function LMSChatbot() {
       router.push("/login");
       return;
     }
-    if (!isAuthenticated()) {
+    if (!isAuthenticated) {
       router.push("/login");
       return;
     }
@@ -126,31 +123,16 @@ export default function LMSChatbot() {
   return (
     <>
       {/* ── Floating Chat Button ── */}
-      <button
-        aria-label="Open PathToPro chat assistant"
-        onClick={() => setOpen((o) => !o)}
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          zIndex: 1100,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          border: "none",
-          background: "linear-gradient(135deg, #6366f1, #3b82f6)",
-          color: "white",
-          fontSize: 24,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 8px 24px rgba(99,102,241,0.4)",
-          transition: "transform 0.2s ease",
-        }}
-      >
-        {open ? "✕" : "💬"}
-      </button>
+      {isAuthenticated && (
+        <button
+          aria-label="Open PathToPro chat assistant"
+          onClick={() => setOpen((o) => !o)}
+          className="chatbot-button"
+          data-allow-preview="false"
+        >
+          <span aria-hidden style={{ fontSize: 24 }}>{open ? "✕" : "💬"}</span>
+        </button>
+      )}
 
       {/* ── Chat Modal Overlay ── */}
       {open && (

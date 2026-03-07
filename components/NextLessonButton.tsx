@@ -18,6 +18,7 @@ export default function NextLessonButton<T extends DefaultLesson>({ lessons, cur
 
     return (
         <button
+            data-protected="true"
             disabled={!nextLesson || disabled}
             onClick={() => nextLesson && !disabled && onNext(nextLesson)}
             aria-disabled={!nextLesson || disabled}

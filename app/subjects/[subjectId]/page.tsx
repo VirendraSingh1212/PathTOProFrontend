@@ -166,13 +166,7 @@ export default function CoursePage() {
   }
 
   // ─── Unauthenticated State ────────────────────────────────────────────────
-  if (!isLoggedIn) {
-    return (
-      <div className="flex h-screen bg-gray-50 items-center justify-center">
-        <LoginModal open={true} onClose={() => { }} />
-      </div>
-    );
-  }
+  // Removed hard blocker to allow Preview Mode. Interaction is caught by the global interceptor.
 
   // ─── Error Handling ────────────────────────────────────────────────────────
   if (error) {
@@ -262,6 +256,7 @@ export default function CoursePage() {
                       <button
                         className={`lesson-item${isCurrent ? " active" : ""}`}
                         onClick={() => handleLessonClick(lesson)}
+                        data-protected="true"
                       >
                         {/* Status dot */}
                         <span style={{
@@ -381,6 +376,7 @@ export default function CoursePage() {
                     borderRadius: "8px", padding: "8px 16px", cursor: "pointer",
                     fontSize: "13px", fontWeight: 600, whiteSpace: "nowrap",
                   }}
+                  data-protected="true"
                 >
                   Resume
                 </button>
@@ -488,6 +484,7 @@ export default function CoursePage() {
                       setSummaryLoading(false);
                     }
                   }}
+                  data-protected="true"
                 >
                   {summaryLoading ? "Generating..." : "✨ Generate AI Summary"}
                 </button>

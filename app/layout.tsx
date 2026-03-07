@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import './preview-mode.css'; // Add preview styles globally
 import Navbar from '@/components/Navbar/Navbar';
 import LMSChatbot from '@/components/LMSChatbot';
 

@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { useAuthStore } from "@/store/authStore";
 
 export type SubjectStatus = "available" | "preview" | "coming-soon";
 
@@ -24,6 +27,7 @@ const SUBJECT_COVERS: Record<string, string> = {
 };
 
 export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
+    const { isAuthenticated } = useAuthStore();
     const { title, description, status = "available", progressPercent = 0 } = subject;
     const disabled = status === "coming-soon";
 
@@ -36,7 +40,10 @@ export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
     const coverSrc = SUBJECT_COVERS[title] ?? subject.thumbnail_url ?? fallbackImage;
 
     return (
-        <div className={`subject-card${disabled ? " opacity-75 pointer-events-auto" : ""}`}>
+        <div
+            className={`subject-card course-card ${disabled ? " opacity-75 pointer-events-auto" : ""}`}
+            data-protected="true"
+        >
             {/* Cover Image */}
             <img
                 src={coverSrc}
@@ -94,6 +101,13 @@ export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
                     </button>
                 </div>
             </div>
+
+            {/* Visual overlay for preview-only users */}
+            {!isAuthenticated && (
+                <div className="card-locked">
+                    <div>Login to unlock course</div>
+                </div>
+            )}
         </div>
     );
 }

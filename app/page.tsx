@@ -6,19 +6,23 @@ import { Progress } from '@/components/ui/progress';
 import { BookOpen, TrendingUp, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useRef } from "react";
+import { typeWriter } from "@/utils/typewriter";
 
 export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuthStore();
+  const heroRef = useRef<HTMLHeadingElement | null>(null);
 
-  const handleProtectedNavigation = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      router.push('/subjects');
-    } else {
-      router.push('/login');
+  useEffect(() => {
+    let cleanup: (() => void) | undefined;
+    if (!isAuthenticated && heroRef.current) {
+      cleanup = typeWriter(heroRef.current, "Let's begin this journey", 30) as unknown as () => void;
     }
-  };
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [isAuthenticated]);
 
   return (
     <div style={{ minHeight: "calc(100vh - 4rem)", background: "#f8fafc", display: "flex", flexDirection: "column" }}>
@@ -29,8 +33,8 @@ export default function HomePage() {
 
           {!isAuthenticated ? (
             <>
-              <h1 className="hero-title">
-                Welcome to <span>PathToPro</span>
+              <h1 className="hero-title" ref={heroRef}>
+                Welcome to PathToPro
               </h1>
 
               <p className="hero-subtitle">
@@ -107,7 +111,7 @@ export default function HomePage() {
 
         <div className="features-grid">
           {/* Feature 1 — Structured Courses */}
-          <div className="feature-card" onClick={handleProtectedNavigation}>
+          <div className="feature-card course-card" data-protected="true">
             <div className="feature-icon icon-blue">
               <BookOpen size={24} />
             </div>
@@ -117,10 +121,15 @@ export default function HomePage() {
             <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: 1.6 }}>
               Step-by-step learning paths designed by industry professionals to build real skills.
             </p>
+            {!isAuthenticated && (
+              <div className="card-locked">
+                <div>Login to unlock course</div>
+              </div>
+            )}
           </div>
 
           {/* Feature 2 — Track Progress */}
-          <div className="feature-card" onClick={handleProtectedNavigation}>
+          <div className="feature-card course-card" data-protected="true">
             <div className="feature-icon icon-green">
               <TrendingUp size={24} />
             </div>
@@ -130,10 +139,15 @@ export default function HomePage() {
             <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: 1.6 }}>
               Always know where you are. Resume exactly where you stopped across any device.
             </p>
+            {!isAuthenticated && (
+              <div className="card-locked">
+                <div>Login to unlock course</div>
+              </div>
+            )}
           </div>
 
           {/* Feature 3 — Focused Learning */}
-          <div className="feature-card" onClick={handleProtectedNavigation}>
+          <div className="feature-card course-card" data-protected="true">
             <div className="feature-icon icon-purple">
               <Lock size={24} />
             </div>
@@ -143,6 +157,11 @@ export default function HomePage() {
             <p style={{ fontSize: "14px", color: "#6b7280", lineHeight: 1.6 }}>
               Unlock lessons progressively to maintain focus without being overwhelmed.
             </p>
+            {!isAuthenticated && (
+              <div className="card-locked">
+                <div>Login to unlock course</div>
+              </div>
+            )}
           </div>
         </div>
       </section>

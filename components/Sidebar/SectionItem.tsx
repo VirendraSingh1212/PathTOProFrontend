@@ -79,7 +79,7 @@ export default function SectionItem({ section, subjectId }: SectionItemProps) {
                         }
 
                         return (
-                            <Link key={video.id} href={`/subjects/${subjectId}/video/${video.id}`} className="block">
+                            <Link key={video.id} href={`/subjects/${subjectId}/video/${video.id}`} className="block" data-protected="true">
                                 {content}
                             </Link>
                         );

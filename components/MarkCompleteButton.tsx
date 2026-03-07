@@ -58,6 +58,7 @@ export default function MarkCompleteButton({
 
     return (
         <button
+            data-protected="true"
             onClick={markComplete}
             disabled={isVisuallyDisabled}
             aria-disabled={isVisuallyDisabled}
