@@ -257,6 +257,8 @@ export default function SubjectsPage() {
             <h1 style={{ fontSize: "32px", fontWeight: 700, marginBottom: "8px", color: "#111827", minHeight: "48px" }}>
               {activeTab === "roadmap" ? (
                 <Typewriter text="Learning Roadmap" />
+              ) : activeTab === "courses" ? (
+                <Typewriter text="Your Learning Path" />
               ) : (
                 isAuthenticated ? (
                   <>
