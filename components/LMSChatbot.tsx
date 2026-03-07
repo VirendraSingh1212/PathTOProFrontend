@@ -2,32 +2,42 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare, X, Send, Sparkles, User, Bot, ArrowRight } from "lucide-react";
+import { MessageSquare, X, Send, Sparkles, User, Bot, ArrowRight, Square } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { ENDPOINTS } from "@/utils/api";
+import ReactMarkdown from "react-markdown";
 
 
 /**
  * Typewriter Component
  * Simulates real-time typing for bot messages
  */
-const TypewriterText = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
+const TypewriterText = ({ text, onComplete, isStopped }: { text: string; onComplete?: () => void, isStopped: boolean }) => {
   const [displayedText, setDisplayedText] = useState("");
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
+    if (isStopped) {
+      if (onComplete) onComplete();
+      return;
+    }
+
     if (index < text.length) {
       const timeout = setTimeout(() => {
         setDisplayedText((prev) => prev + text[index]);
         setIndex((prev) => prev + 1);
-      }, 10); // Fast typing speed
+      }, 5); // Fast typing speed
       return () => clearTimeout(timeout);
     } else if (onComplete) {
       onComplete();
     }
-  }, [index, text, onComplete]);
+  }, [index, text, onComplete, isStopped]);
 
-  return <span className={index < text.length ? "typing-cursor" : ""}>{displayedText}</span>;
+  return (
+    <div className={`prose prose-invert max-w-none text-sm leading-relaxed ${index < text.length && !isStopped ? "typing-cursor" : ""}`}>
+      <ReactMarkdown>{displayedText}</ReactMarkdown>
+    </div>
+  );
 };
 
 type Message = {
@@ -53,6 +63,7 @@ export default function LMSChatbot() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [isStopped, setIsStopped] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -100,6 +111,7 @@ export default function LMSChatbot() {
   async function sendToBackend(text: string, isRetry = false) {
     const { accessToken } = useAuthStore.getState();
     setIsTyping(true);
+    setIsStopped(false);
 
     // If it's a retry, we don't need to push the user message again
     if (!isRetry) {
@@ -266,17 +278,35 @@ export default function LMSChatbot() {
 
                     <div className={m.sender === "user" ? "user-message" : "assistant-message"}>
                       {m.sender === "bot" && m.isNew ? (
-                        <TypewriterText
-                          text={m.text}
-                          onComplete={() => {
-                            // Clear isNew flag once typing is finished
-                            setMessages(prev => prev.map(msg =>
-                              msg.id === m.id ? { ...msg, isNew: false } : msg
-                            ));
-                          }}
-                        />
+                        <>
+                          <TypewriterText
+                            text={m.text}
+                            isStopped={isStopped}
+                            onComplete={() => {
+                              // Clear isNew flag once typing is finished
+                              setMessages(prev => prev.map(msg =>
+                                msg.id === m.id ? { ...msg, isNew: false } : msg
+                              ));
+                            }}
+                          />
+                          {!isStopped && (
+                            <div className="mt-3 flex justify-end">
+                              <button
+                                onClick={() => setIsStopped(true)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-[#1a1a1a] border border-[#333] hover:text-white hover:bg-[#2a2a2a] hover:border-gray-500 rounded-lg transition-all"
+                              >
+                                <Square size={10} className="fill-current" />
+                                Stop generating
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : m.sender === "bot" ? (
+                        <div className="prose prose-invert max-w-none text-sm leading-relaxed">
+                          <ReactMarkdown>{m.text}</ReactMarkdown>
+                        </div>
                       ) : (
-                        m.text
+                        <div className="text-sm whitespace-pre-wrap">{m.text}</div>
                       )}
 
                       {/* Retry Button for Errors */}
