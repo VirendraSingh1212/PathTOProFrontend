@@ -29,16 +29,16 @@ export default function HomePage() {
 
           {!isAuthenticated ? (
             <>
-              <h1 className="hero-title">
+              <h1 className="hero-title animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both">
                 Welcome to <span>PathToPro</span>
               </h1>
 
-              <p className="hero-subtitle">
+              <p className="hero-subtitle animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300 fill-mode-both">
                 A structured learning platform built for serious learners.{" "}
                 Master industry-ready skills with guided paths and smart progress tracking.
               </p>
 
-              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0" }}>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-both" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0" }}>
                 <Link href="/auth/login" className="primary-btn">
                   Start Learning →
                 </Link>
@@ -49,15 +49,15 @@ export default function HomePage() {
             </>
           ) : (
             <>
-              <h1 className="hero-title">
+              <h1 className="hero-title animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both">
                 Welcome back, <span>{user?.name?.split(' ')[0] || 'Student'}</span> 👋
               </h1>
 
-              <p className="hero-subtitle">
+              <p className="hero-subtitle animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-300 fill-mode-both">
                 Continue building momentum and complete your learning path.
               </p>
 
-              <div style={{ maxWidth: "420px", margin: "0 auto" }}>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500 fill-mode-both" style={{ maxWidth: "420px", margin: "0 auto" }}>
                 <Card style={{
                   borderRadius: "16px",
                   boxShadow: "0 6px 20px rgba(0,0,0,0.07)",
@@ -93,7 +93,7 @@ export default function HomePage() {
       <section className="features-section" style={{ flex: 1 }}>
 
         {/* Section label */}
-        <div style={{ textAlign: "center", marginBottom: "48px" }}>
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-700 fill-mode-both" style={{ textAlign: "center", marginBottom: "48px" }}>
           <p style={{ fontSize: "12px", fontWeight: 700, color: "#2563eb", letterSpacing: "0.1em", marginBottom: "10px" }}>
             WHY PATHTOPRO
           </p>
@@ -107,7 +107,7 @@ export default function HomePage() {
 
         <div className="features-grid">
           {/* Feature 1 — Structured Courses */}
-          <div className="feature-card" onClick={handleProtectedNavigation}>
+          <div className="feature-card animate-in fade-in slide-in-from-bottom-8 duration-700 delay-900 fill-mode-both" onClick={handleProtectedNavigation}>
             <div className="feature-icon icon-blue">
               <BookOpen size={24} />
             </div>
@@ -120,7 +120,7 @@ export default function HomePage() {
           </div>
 
           {/* Feature 2 — Track Progress */}
-          <div className="feature-card" onClick={handleProtectedNavigation}>
+          <div className="feature-card animate-in fade-in slide-in-from-bottom-8 duration-700 delay-1000 fill-mode-both" onClick={handleProtectedNavigation}>
             <div className="feature-icon icon-green">
               <TrendingUp size={24} />
             </div>
@@ -133,7 +133,7 @@ export default function HomePage() {
           </div>
 
           {/* Feature 3 — Focused Learning */}
-          <div className="feature-card" onClick={handleProtectedNavigation}>
+          <div className="feature-card animate-in fade-in slide-in-from-bottom-8 duration-700 delay-1100 fill-mode-both" onClick={handleProtectedNavigation}>
             <div className="feature-icon icon-purple">
               <Lock size={24} />
             </div>
