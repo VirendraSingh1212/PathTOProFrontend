@@ -1,14 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { BookOpen } from 'lucide-react';
 
+// Pages that use their own DashboardLayout (sidebar + header)
+const DASHBOARD_ROUTES = ['/subjects'];
+
 export default function Navbar() {
     const { isAuthenticated, user, logout } = useAuthStore();
     const router = useRouter();
+    const pathname = usePathname();
+
+    // Hide the global navbar on dashboard pages that have their own sidebar/header
+    if (pathname && DASHBOARD_ROUTES.some(r => pathname === r)) {
+        return null;
+    }
 
     const handleLogout = () => {
         logout();
