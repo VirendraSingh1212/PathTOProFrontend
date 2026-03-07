@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { BookOpen, LayoutDashboard, Map, MessageSquare, HelpCircle, Settings, LogOut, User } from "lucide-react";
 import SubjectCard, { Subject } from "@/components/SubjectCard";
 import DashboardView from "@/components/DashboardView";
+import Typewriter from "@/components/Typewriter";
 import ProtectedActionModal from "@/components/ProtectedActionModal";
 import { useAuthStore } from "@/store/authStore";
 import { API_BASE } from "@/utils/api";
@@ -253,8 +254,18 @@ export default function SubjectsPage() {
 
           {/* Title */}
           <div style={{ marginBottom: "32px" }}>
-            <h1 style={{ fontSize: "32px", fontWeight: 700, marginBottom: "8px", color: "#111827" }}>
-              {activeTab === "roadmap" ? "Learning Roadmap" : (isAuthenticated ? "Welcome back 👋" : "Your Learning Paths")}
+            <h1 style={{ fontSize: "32px", fontWeight: 700, marginBottom: "8px", color: "#111827", minHeight: "48px" }}>
+              {activeTab === "roadmap" ? (
+                <Typewriter text="Learning Roadmap" />
+              ) : (
+                isAuthenticated ? (
+                  <>
+                    <Typewriter text={`Welcome back, ${user?.name?.split(' ')[0] || 'Student'} 👋`} />
+                  </>
+                ) : (
+                  <Typewriter text="Your Learning Paths" />
+                )
+              )}
             </h1>
             <p style={{ fontSize: "15px", color: "#6b7280", maxWidth: "560px", lineHeight: 1.6 }}>
               {activeTab === "roadmap"
