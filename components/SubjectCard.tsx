@@ -50,7 +50,7 @@ export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
                     position: "absolute",
                     top: "12px",
                     right: "12px",
-                    background: "#2563eb",
+                    background: "#000000",
                     color: "white",
                     fontSize: "11px",
                     fontWeight: 700,
@@ -81,7 +81,7 @@ export default function SubjectCard({ subject, fallbackImage, onOpen }: Props) {
                         PROGRESS
                     </div>
                     <div style={{ height: "6px", background: "#e5e7eb", borderRadius: "6px", overflow: "hidden", marginBottom: "18px" }}>
-                        <div style={{ width: `${progressPercent}%`, background: "#2563eb", height: "100%", borderRadius: "6px", transition: "width 0.4s ease" }} />
+                        <div style={{ width: `${progressPercent}%`, background: "#000000", height: "100%", borderRadius: "6px", transition: "width 0.4s ease" }} />
                     </div>
 
                     {/* CTA Button */}

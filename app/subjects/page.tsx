@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BookOpen } from "lucide-react";
+import { BookOpen, LayoutDashboard, Map, MessageSquare, HelpCircle, Settings, LogOut, User } from "lucide-react";
 import SubjectCard, { Subject } from "@/components/SubjectCard";
 import ProtectedActionModal from "@/components/ProtectedActionModal";
 import { useAuthStore } from "@/store/authStore";
+import { API_BASE } from "@/utils/api";
+
 
 const LOADING_MESSAGES = [
   "Preparing your learning workspace...",
@@ -15,12 +17,13 @@ const LOADING_MESSAGES = [
 
 export default function SubjectsPage() {
   const router = useRouter();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [loadingMsgIndex, setLoadingMsgIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<"dashboard" | "courses" | "roadmap">("dashboard");
 
   // Rotate loading messages
   useEffect(() => {
@@ -35,11 +38,8 @@ export default function SubjectsPage() {
     async function fetchSubjects() {
       try {
         setLoading(true);
-        const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
-        const cleanUrl = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
-        const apiUrl = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+        const res = await fetch(`${API_BASE}/subjects`);
 
-        const res = await fetch(`${apiUrl}/subjects`);
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -143,148 +143,212 @@ export default function SubjectsPage() {
     <div className="subjects-layout">
 
       {/* ── Left Sidebar ─────────────────────────────────────────────────── */}
-      <aside className="subjects-sidebar">
-        {/* Logo */}
-        <div>
-          <div style={{ fontSize: "20px", fontWeight: 800, color: "#111827" }}>
-            Path<span style={{ color: "#2563eb" }}>To</span>Pro
-          </div>
-          <p style={{ fontSize: "11px", color: "#9ca3af", marginTop: 2 }}>Learning Platform</p>
-        </div>
-
-        {/* Quick Stats */}
-        {isAuthenticated && subjects.length > 0 && (
-          <div>
-            <p className="sidebar-label">Overview</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#374151" }}>
-                <span>Courses</span>
-                <span style={{ fontWeight: 600 }}>{coursesEnrolled}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#374151" }}>
-                <span>Completed</span>
-                <span style={{ fontWeight: 600 }}>{lessonsCompleted}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#374151" }}>
-                <span>Progress</span>
-                <span style={{ fontWeight: 600, color: "#2563eb" }}>{totalProgress}%</span>
-              </div>
+      <aside className="subjects-sidebar flex flex-col justify-between">
+        {/* Logo and Brand */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="bg-white text-black p-1.5 rounded-lg flex items-center justify-center">
+              <BookOpen size={20} strokeWidth={2.5} />
+            </div>
+            <div style={{ fontSize: "22px", fontWeight: 800, color: "#ffffff", letterSpacing: "-0.02em" }}>
+              Path<span style={{ color: "#9ca3af" }}>To</span>Pro
             </div>
           </div>
-        )}
-
-        {/* Learning Path - Roadmap */}
-        <div>
-          <p className="sidebar-label">Learning Path</p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {allRoadmapItems.map((item) => {
-              const isUpcoming = item.status === "upcoming";
-              const dotClass = item.status === "completed" ? "green-dot" : item.status === "active" ? "blue-dot" : "gray-dot";
-
-              return (
-                <button
-                  key={item.id}
-                  className={`sidebar-item${isUpcoming ? " coming-soon" : ""}`}
-                  onClick={() => {
-                    if (!isUpcoming) {
-                      const subj = subjects.find(s => s.id === item.id);
-                      if (subj) handleSubjectClick(subj);
-                    }
-                  }}
-                  title={isUpcoming ? "Coming soon — focus on current subjects." : item.title}
-                >
-                  <div className={dotClass} />
-                  <div>
-                    <div className="sidebar-item-title">{item.title}</div>
-                    <div className="sidebar-item-badge">
-                      {item.status === "completed" ? "✓ Completed" : item.status === "active" ? "In Progress" : "Coming Soon"}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
-        {/* Brand */}
-        <div style={{ marginTop: "auto", fontSize: "12px", color: "#d1d5db", textAlign: "center" }}>
-          #PathToPro
+        {/* Quick Stats & Navigation */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+          <button
+            className={`sidebar-item ${activeTab === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            <div className="flex items-center gap-3">
+              <LayoutDashboard size={18} strokeWidth={2} />
+              Dashboard
+            </div>
+          </button>
+
+          <button
+            className={`sidebar-item ${activeTab === 'courses' ? 'active' : ''}`}
+            onClick={() => setActiveTab('courses')}
+          >
+            <div className="flex items-center gap-3">
+              <BookOpen size={18} strokeWidth={2} />
+              Courses
+            </div>
+          </button>
+
+          <button
+            className={`sidebar-item ${activeTab === 'roadmap' ? 'active' : ''}`}
+            onClick={() => setActiveTab('roadmap')}
+          >
+            <div className="flex items-center gap-3">
+              <Map size={18} strokeWidth={2} />
+              Learning Roadmap
+            </div>
+          </button>
+
+          <button
+            className="sidebar-item"
+            onClick={() => {
+              const btn = document.querySelector('button[aria-label="Open PathToPro chat assistant"]') as HTMLButtonElement | null;
+              if (btn) btn.click();
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <MessageSquare size={18} strokeWidth={2} />
+              AI Assistant
+            </div>
+          </button>
+        </div>
+
+        {/* Bottom Options (Support & Settings) */}
+        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 6, paddingBottom: "8px" }}>
+          <button
+            className="sidebar-item"
+            onClick={() => router.push('/support')}
+          >
+            <div className="flex items-center gap-3">
+              <HelpCircle size={18} strokeWidth={2} />
+              Support
+            </div>
+          </button>
+
+          <button
+            className="sidebar-item"
+            onClick={() => router.push('/profile')}
+          >
+            <div className="flex items-center gap-3">
+              <Settings size={18} strokeWidth={2} />
+              Profile Settings
+            </div>
+          </button>
+
+          {/* User Profile */}
+          {isAuthenticated && user && (
+            <div className="mt-6 pt-6 border-t border-[#2d2d2d] flex items-center gap-3 mb-2">
+              <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-white font-bold text-sm shrink-0 border border-gray-600">
+                {user.name ? user.name.charAt(0).toUpperCase() : <User size={16} />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">{user.name || 'Student'}</p>
+                <p className="text-xs text-gray-400 truncate">{user.email || 'Free Tier'}</p>
+              </div>
+              <button onClick={() => { logout(); router.push('/auth/login'); }} className="p-1.5 text-gray-400 hover:text-white rounded-md hover:bg-[#2d2d2d] transition-colors">
+                <LogOut size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
       {/* ── Main Content ─────────────────────────────────────────────────── */}
       <main className="subjects-main">
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+        <div style={{ maxWidth: 1400, margin: "0 auto", paddingBottom: "80px" }}>
 
           {/* Title */}
           <div style={{ marginBottom: "32px" }}>
             <h1 style={{ fontSize: "32px", fontWeight: 700, marginBottom: "8px", color: "#111827" }}>
-              {isAuthenticated ? "Welcome back 👋" : "Your Learning Paths"}
+              {activeTab === "roadmap" ? "Learning Roadmap" : (isAuthenticated ? "Welcome back 👋" : "Your Learning Paths")}
             </h1>
             <p style={{ fontSize: "15px", color: "#6b7280", maxWidth: "560px", lineHeight: 1.6 }}>
-              {isAuthenticated
-                ? "Continue your journey or explore new courses below."
-                : "Select a subject below to start learning. Explore free previews or unlock full access."}
+              {activeTab === "roadmap"
+                ? "Track your journey and see what's coming next in your curriculum."
+                : (isAuthenticated
+                  ? "Continue your journey or explore new courses below."
+                  : "Select a subject below to start learning. Explore free previews or unlock full access.")}
             </p>
           </div>
 
-          {/* Dashboard */}
-          {isAuthenticated && subjects.length > 0 && (
-            <div className="dashboard-grid">
-              <div className="dashboard-card">
-                <div className="dashboard-icon" style={{ background: "#dbeafe" }}>📚</div>
-                <div className="dashboard-title">Courses Enrolled</div>
-                <div className="dashboard-number">{coursesEnrolled}</div>
-              </div>
-              <div className="dashboard-card">
-                <div className="dashboard-icon" style={{ background: "#d1fae5" }}>✅</div>
-                <div className="dashboard-title">Lessons Completed</div>
-                <div className="dashboard-number">{lessonsCompleted}</div>
-              </div>
-              <div className="dashboard-card">
-                <div className="dashboard-icon" style={{ background: "#ede9fe" }}>📊</div>
-                <div className="dashboard-title">Total Progress</div>
-                <div className="dashboard-number">{totalProgress}%</div>
-              </div>
-            </div>
-          )}
+          {(activeTab === "courses" || activeTab === "dashboard") ? (
+            <>
+              {/* Dashboard */}
+              {isAuthenticated && subjects.length > 0 && (
+                <div className="dashboard-grid">
+                  <div className="dashboard-card">
+                    <div className="dashboard-icon" style={{ background: "#f3f4f6" }}>📚</div>
+                    <div className="dashboard-title">Courses Enrolled</div>
+                    <div className="dashboard-number">{coursesEnrolled}</div>
+                  </div>
+                  <div className="dashboard-card">
+                    <div className="dashboard-icon" style={{ background: "#e5e7eb" }}>✅</div>
+                    <div className="dashboard-title">Lessons Completed</div>
+                    <div className="dashboard-number">{lessonsCompleted}</div>
+                  </div>
+                  <div className="dashboard-card">
+                    <div className="dashboard-icon" style={{ background: "#d1d5db" }}>📊</div>
+                    <div className="dashboard-title">Total Progress</div>
+                    <div className="dashboard-number">{totalProgress}%</div>
+                  </div>
+                </div>
+              )}
 
-          {/* Subject Cards */}
-          {subjects.length === 0 && UPCOMING_SUBJECTS.length === 0 ? (
-            <div style={{
-              textAlign: "center", padding: "80px 20px",
-              background: "white", borderRadius: "16px",
-              boxShadow: "0 6px 20px rgba(0,0,0,0.06)"
-            }}>
-              <BookOpen style={{ margin: "0 auto 16px", width: 56, height: 56, color: "#d1d5db" }} />
-              <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#1f2937", marginBottom: "8px" }}>No Subjects Available</h3>
-              <p style={{ color: "#9ca3af" }}>Check back later for new courses.</p>
-            </div>
+              {/* Subject Cards */}
+              {subjects.length === 0 && UPCOMING_SUBJECTS.length === 0 ? (
+                <div style={{
+                  textAlign: "center", padding: "80px 20px",
+                  background: "white", borderRadius: "16px",
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.06)"
+                }}>
+                  <BookOpen style={{ margin: "0 auto 16px", width: 56, height: 56, color: "#d1d5db" }} />
+                  <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#1f2937", marginBottom: "8px" }}>No Subjects Available</h3>
+                  <p style={{ color: "#9ca3af" }}>Check back later for new courses.</p>
+                </div>
+              ) : (
+                <div className="subject-grid">
+                  {subjects.map((subject, index) => {
+                    const FALLBACK_COVERS = [
+                      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
+                      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80",
+                      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
+                    ];
+                    return (
+                      <SubjectCard
+                        key={subject.id}
+                        subject={subject}
+                        fallbackImage={FALLBACK_COVERS[index % FALLBACK_COVERS.length]}
+                        onOpen={handleSubjectClick}
+                      />
+                    );
+                  })}
+                  {UPCOMING_SUBJECTS.map((subject, index) => (
+                    <SubjectCard
+                      key={subject.id}
+                      subject={subject}
+                      fallbackImage={UPCOMING_COVERS[index % UPCOMING_COVERS.length]}
+                      onOpen={handleSubjectClick}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="subject-grid">
-              {subjects.map((subject, index) => {
-                const FALLBACK_COVERS = [
-                  "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=600&q=80",
-                  "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600&q=80",
-                  "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80",
-                ];
-                return (
-                  <SubjectCard
-                    key={subject.id}
-                    subject={subject}
-                    fallbackImage={FALLBACK_COVERS[index % FALLBACK_COVERS.length]}
-                    onOpen={handleSubjectClick}
-                  />
-                );
-              })}
-              {UPCOMING_SUBJECTS.map((subject, index) => (
-                <SubjectCard
-                  key={subject.id}
-                  subject={subject}
-                  fallbackImage={UPCOMING_COVERS[index % UPCOMING_COVERS.length]}
-                  onOpen={handleSubjectClick}
-                />
-              ))}
+            /* Roadmap Vertical Timeline */
+            <div className="roadmap-container mt-8 bg-white/60 p-8 rounded-[32px] border border-gray-100 shadow-sm">
+              <div className="text-xs font-bold tracking-widest text-slate-400 mb-8 uppercase px-4 inline-block">
+                Learning Path
+              </div>
+              <div className="relative border-l-2 border-gray-200 ml-[22px] py-2 space-y-12">
+                {allRoadmapItems.map((item, index) => {
+                  const isActive = item.status === "active" || item.status === "completed";
+                  return (
+                    <div key={item.id} className="relative group pl-10 cursor-pointer">
+                      {/* Timeline Dot */}
+                      <div className={`absolute top-4 left-[-9px] w-4 h-4 rounded-full border-4 border-white shadow-sm transition-all duration-300 group-hover:scale-125 group-hover:shadow-[0_0_12px_rgba(0,0,0,0.6)] ${isActive ? 'bg-black group-hover:bg-gray-800' : 'bg-gray-200 group-hover:bg-gray-300'}`} />
+
+                      {/* Content */}
+                      <div className="flex flex-col p-4 -mt-3 -ml-4 rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-white border border-transparent hover:border-gray-100">
+                        <h3 className={`text-lg font-bold transition-colors ${isActive ? 'text-gray-900 group-hover:text-black' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                          {item.title}
+                        </h3>
+                        <p className={`text-sm mt-1 font-medium transition-colors ${isActive ? 'text-gray-500' : 'text-gray-300'}`}>
+                          {item.status === "completed" ? "Completed" : item.status === "active" ? "In Progress" : "Coming Soon"}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 

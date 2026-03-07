@@ -13,16 +13,21 @@
 .subjects-sidebar {
   width: 260px;
   flex-shrink: 0;
-  background: white;
-  border-right: 1px solid #e5e7eb;
+  background: #1f1f1f;
+  /* Off-black background */
+  border-radius: 24px;
+  /* Rounded corners */
+  margin: 16px;
+  /* Margin to separate from screen edge */
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
   gap: 28px;
   overflow-y: auto;
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: 80px;
+  /* Account for navbar */
+  height: calc(100vh - 96px);
 }
 
 @media (max-width: 900px) {
@@ -33,44 +38,64 @@
 
 .subjects-main {
   flex: 1;
-  padding: 48px 32px;
-  overflow-y: auto;
+  padding: 32px 32px;
+  background: #f9fafb;
+  /* Off-white main background */
+  border-radius: 32px;
+  margin: 16px 16px 16px 0;
+  min-height: min-content;
 }
 
 @media (max-width: 900px) {
   .subjects-main {
     padding: 32px 16px;
+    margin: 16px;
   }
 }
+
+.subjects-layout {
+  display: flex;
+  min-height: calc(100vh - 80px);
+  /* Fill remaining space after navbar */
+  background: #f3f4f6;
+}
+
+/* Solid gray border background instead of purple */
+
 
 .sidebar-label {
   font-size: 11px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #6b7280;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  padding-left: 10px;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 8px;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
   background: transparent;
   width: 100%;
   text-align: left;
-  font-size: 13px;
-  color: #374151;
+  font-size: 14px;
+  color: #9ca3af;
+  /* Idle text color */
 }
 
-.sidebar-item:hover {
-  background: #f3f4f6;
-  transform: translateX(3px);
+.sidebar-item:hover,
+.sidebar-item.active {
+  background: #2d2d2d;
+  /* Lighter off-black highlight */
+  color: #ffffff;
+  /* White text on hover/active */
 }
 
 .sidebar-item.coming-soon {
@@ -79,8 +104,8 @@
 }
 
 .sidebar-item.coming-soon:hover {
-  transform: none;
   background: transparent;
+  color: #9ca3af;
 }
 
 .sidebar-item-title {
@@ -138,7 +163,7 @@
 }
 
 .auth-logo span {
-  color: #2563eb;
+  color: #000000;
 }
 
 .auth-title {
@@ -159,7 +184,7 @@
   width: 26px;
   height: 26px;
   border: 3px solid #e5e7eb;
-  border-top: 3px solid #2563eb;
+  border-top: 3px solid #000000;
   border-radius: 50%;
   margin-top: 18px;
   animation: spin 0.8s linear infinite;
@@ -188,9 +213,10 @@
 
 .dashboard-card {
   background: white;
-  border-radius: 12px;
-  padding: 20px;
-  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 24px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   transition: all 0.25s ease;
 }
 
@@ -254,7 +280,7 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: #2563eb;
+  background: #000000;
   flex-shrink: 0;
 }
 
@@ -263,7 +289,7 @@
 }
 
 .roadmap-dot.completed {
-  background: #16a34a;
+  background: #4b5563;
 }
 
 .roadmap-line {
@@ -415,15 +441,18 @@
   width: 42px;
   height: 42px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #3b82f6);
+  background: white;
+  border: 1px solid #1f1f1f;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: black;
   font-size: 20px;
   margin-right: 12px;
   flex-shrink: 0;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
+
 
 /* Step 5 — Close Button */
 .chatbot-close {
@@ -494,9 +523,12 @@
 }
 
 .suggestion-pill:hover {
-  background: #1a1a1a;
-  border-color: #6366f1;
+  background: white;
+  border-color: white;
+  color: black;
+  transform: translateY(-1px);
 }
+
 
 /* Step 9 — Context */
 .chatbot-context {
@@ -527,8 +559,10 @@
 }
 
 .chatbot-input:focus {
-  border-color: #6366f1;
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
 }
+
 
 .chatbot-input::placeholder {
   color: #4b5563;
@@ -539,9 +573,9 @@
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: #2563eb;
+  background: white;
   border: none;
-  color: white;
+  color: black;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -551,8 +585,10 @@
 }
 
 .send-button:hover {
-  background: #1d4ed8;
+  background: #f1f1f1;
+  transform: scale(1.05);
 }
+
 
 .send-button:disabled {
   opacity: 0.3;
@@ -572,10 +608,11 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #6366f1;
+  background: #9ca3af;
   display: inline-block;
   animation: chatbot-bounce 1.2s infinite;
 }
+
 
 .chatbot-typing .dot:nth-child(2) {
   animation-delay: 0.2s;
@@ -602,29 +639,30 @@
 
 /* Step 13 — Message Bubbles */
 .user-message {
-  background: #2563eb;
-  color: white;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border-bottom-right-radius: 4px;
+  background: white;
+  color: black;
+  padding: 12px 18px;
+  border-radius: 18px 18px 2px 18px;
   align-self: flex-end;
   max-width: 80%;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.05);
+}
+
+.assistant-message {
+  background: #111;
+  border: 1px solid #1f1f1f;
+  color: #f3f4f6;
+  padding: 12px 18px;
+  border-radius: 18px 18px 18px 2px;
+  align-self: flex-start;
+  max-width: 85%;
   font-size: 14px;
   line-height: 1.6;
 }
 
-.assistant-message {
-  background: #1f2937;
-  color: #e5e7eb;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border-bottom-left-radius: 4px;
-  align-self: flex-start;
-  max-width: 80%;
-  font-size: 14px;
-  line-height: 1.6;
-  border: 1px solid #2a2a2a;
-}
 
 /* ── Landing Page ─────────────────────────────────────────────────────── */
 
@@ -653,8 +691,12 @@
 }
 
 .hero-title span {
-  color: #2563eb;
+  color: #000000;
+  text-decoration: underline;
+  text-decoration-thickness: 4px;
+  text-underline-offset: 8px;
 }
+
 
 /* Step 3 — Subtitle */
 .hero-subtitle {
@@ -762,18 +804,18 @@
 }
 
 .icon-blue {
-  background: rgba(59, 130, 246, 0.12);
-  color: #2563eb;
+  background: rgba(0, 0, 0, 0.05);
+  color: #000000;
 }
 
 .icon-green {
-  background: rgba(34, 197, 94, 0.12);
-  color: #16a34a;
+  background: rgba(0, 0, 0, 0.05);
+  color: #000000;
 }
 
 .icon-purple {
-  background: rgba(168, 85, 247, 0.12);
-  color: #9333ea;
+  background: rgba(0, 0, 0, 0.05);
+  color: #000000;
 }
 
 /* Step 8 — Navbar alignment */
@@ -1064,7 +1106,7 @@
   padding: 12px;
   border-radius: 10px;
   border: none;
-  background: #2563eb;
+  background: #000000;
   color: white;
   font-weight: 600;
   font-size: 14px;
@@ -1073,7 +1115,7 @@
 }
 
 .continue-btn:hover {
-  background: #1d4ed8;
+  background: #333333;
 }
 
 .continue-btn:disabled {

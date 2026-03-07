@@ -16,7 +16,7 @@ export default function HomePage() {
     if (token) {
       router.push('/subjects');
     } else {
-      router.push('/login');
+      router.push('/auth/login');
     }
   };
 
@@ -39,7 +39,7 @@ export default function HomePage() {
               </p>
 
               <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0" }}>
-                <Link href="/auth/register" className="primary-btn">
+                <Link href="/auth/login" className="primary-btn">
                   Start Learning →
                 </Link>
                 <Link href="/subjects" className="secondary-btn">

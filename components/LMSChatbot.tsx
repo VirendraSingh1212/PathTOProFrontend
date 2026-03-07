@@ -2,22 +2,40 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MessageSquare, X, Send, Sparkles, User, Bot, ArrowRight } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { ENDPOINTS } from "@/utils/api";
+
 
 /**
- * LMS Chatbot – Modern dark overlay AI assistant
- *
- * Behavior:
- * - Floating 💬 button (bottom-right) opens a centered modal overlay.
- * - Sends messages to backend AI endpoint.
- * - Quick-action buttons navigate safely.
- * - Persists conversation in sessionStorage.
+ * Typewriter Component
+ * Simulates real-time typing for bot messages
  */
+const TypewriterText = ({ text, onComplete }: { text: string; onComplete?: () => void }) => {
+  const [displayedText, setDisplayedText] = useState("");
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (index < text.length) {
+      const timeout = setTimeout(() => {
+        setDisplayedText((prev) => prev + text[index]);
+        setIndex((prev) => prev + 1);
+      }, 10); // Fast typing speed
+      return () => clearTimeout(timeout);
+    } else if (onComplete) {
+      onComplete();
+    }
+  }, [index, text, onComplete]);
+
+  return <span className={index < text.length ? "typing-cursor" : ""}>{displayedText}</span>;
+};
 
 type Message = {
   id: string;
   sender: "user" | "bot";
   text: string;
-  actions?: { id: string; label: string; action: string }[];
+  isNew?: boolean;
+  isError?: boolean;
 };
 
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -31,14 +49,17 @@ const QUICK_PROMPTS = [
 
 export default function LMSChatbot() {
   const router = useRouter();
+  const { isAuthenticated, authLoading } = useAuthStore();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<Message[]>(() => {
-    try {
-      const raw = sessionStorage.getItem("lms_chat_messages");
-      if (raw) return JSON.parse(raw) as Message[];
-    } catch { }
+    if (typeof window !== "undefined") {
+      try {
+        const raw = sessionStorage.getItem("lms_chat_messages");
+        if (raw) return JSON.parse(raw) as Message[];
+      } catch { }
+    }
     return [];
   });
 
@@ -46,9 +67,11 @@ export default function LMSChatbot() {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
-    try {
-      sessionStorage.setItem("lms_chat_messages", JSON.stringify(messages));
-    } catch { }
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.setItem("lms_chat_messages", JSON.stringify(messages));
+      } catch { }
+    }
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
@@ -60,146 +83,151 @@ export default function LMSChatbot() {
     }
   }, [open]);
 
-  const isAuthenticated = () => {
-    try {
-      return Boolean(localStorage.getItem("token"));
-    } catch {
-      return false;
-    }
-  };
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener("open-chatbot", handleOpen);
+    return () => window.removeEventListener("open-chatbot", handleOpen);
+  }, []);
+
+
+  // If not authenticated or loading, don't show the chatbot at all
+  if (authLoading || !isAuthenticated) return null;
 
   function pushMessage(m: Message) {
     setMessages((prev) => [...prev, m]);
   }
 
-  function handleAction(action: string) {
-    if (action === "login") {
-      router.push("/login");
-      return;
-    }
-    if (!isAuthenticated()) {
-      router.push("/login");
-      return;
-    }
-    switch (action) {
-      case "subjects":
-      case "resume":
-      case "progress":
-      default:
-        router.push("/subjects");
-        break;
-    }
-    pushMessage({ id: uid(), sender: "bot", text: "Done — taking you there now." });
-  }
-
-  async function sendToBackend(text: string) {
+  async function sendToBackend(text: string, isRetry = false) {
+    const { accessToken } = useAuthStore.getState();
     setIsTyping(true);
-    try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://pathtopro-backend.onrender.com";
-      const response = await fetch(`${apiBase}/api/chatbot/message`, {
+
+    // If it's a retry, we don't need to push the user message again
+    if (!isRetry) {
+      pushMessage({ id: uid(), sender: "user", text });
+    }
+
+    const performFetch = async (url: string) => {
+      return await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+        },
+        credentials: "include",
         body: JSON.stringify({ message: text }),
       });
+    };
+
+    try {
+      let response = await performFetch(ENDPOINTS.CHATBOT);
+
+      // Robustness: Try with trailing slash if 404 (Render.com/Next.js routing quirk)
+      if (response.status === 404 && !ENDPOINTS.CHATBOT.endsWith("/")) {
+        response = await performFetch(`${ENDPOINTS.CHATBOT}/`);
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
       const data = await response.json();
-      const reply = data?.data?.reply || "I couldn't generate a response.";
-      pushMessage({ id: uid(), sender: "bot", text: reply });
-    } catch {
+      let reply = data?.data?.reply || data?.reply;
+
+      // Detect the backend's "service unavailable" fallback string
+      const isBackendFallback = reply && reply.toLowerCase().includes("service is temporarily unavailable");
+
+      if (isBackendFallback || !reply) {
+        throw new Error("AI_OFFLINE");
+      }
+
+      // Push bot message with isNew flag to trigger typewriter
+      pushMessage({ id: uid(), sender: "bot", text: reply, isNew: true });
+    } catch (err) {
+      const isOffline = err instanceof Error && err.message === "AI_OFFLINE";
+      const errorMessage = isOffline
+        ? "The AI service is currently deep in thought (or offline). Would you like to try again?"
+        : `Connection lost (${err instanceof Error ? err.message : "Error"}). Please try again.`;
+
       pushMessage({
         id: uid(),
         sender: "bot",
-        text: "Connection error. Please try again.",
+        text: errorMessage,
+        isNew: true,
+        isError: true
       });
     } finally {
       setIsTyping(false);
     }
   }
 
+
   async function handleSend() {
     const text = input.trim();
     if (!text || isTyping) return;
-    pushMessage({ id: uid(), sender: "user", text });
     setInput("");
     await sendToBackend(text);
   }
 
+
   return (
     <>
-      {/* ── Floating Chat Button ── */}
+      {/* ── Floating Chat Button (FAB) ── */}
       <button
         aria-label="Open PathToPro chat assistant"
         onClick={() => setOpen((o) => !o)}
-        style={{
-          position: "fixed",
-          bottom: 24,
-          right: 24,
-          zIndex: 1100,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
-          border: "none",
-          background: "linear-gradient(135deg, #6366f1, #3b82f6)",
-          color: "white",
-          fontSize: 24,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "0 8px 24px rgba(99,102,241,0.4)",
-          transition: "transform 0.2s ease",
-        }}
+        className="fixed bottom-6 right-6 z-[1100] w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all border border-gray-800"
       >
-        {open ? "✕" : "💬"}
+        {open ? <X size={24} /> : <MessageSquare size={24} />}
       </button>
 
       {/* ── Chat Modal Overlay ── */}
       {open && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1200,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            paddingTop: "6vh",
-            background: "rgba(0,0,0,0.85)",
-            backdropFilter: "blur(4px)",
-          }}
+          className="fixed inset-0 z-[1200] flex items-start justify-center pt-[6vh] bg-black/80 backdrop-blur-md animate-in fade-in duration-300"
           onClick={() => setOpen(false)}
         >
-          <div className="chatbot-modal" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="chatbot-modal bg-[#0b0b0b] border border-[#1f1f1f] shadow-[0_32px_64px_rgba(0,0,0,0.6)] animate-in slide-in-from-bottom-8 duration-500"
+            onClick={(e) => e.stopPropagation()}
+            style={{ width: '850px', maxWidth: '95vw', height: '650px' }}
+          >
 
             {/* Header */}
-            <div className="chatbot-header">
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <div className="chatbot-avatar">🤖</div>
+            <div className="flex items-center justify-between p-6 border-b border-[#1f1f1f]">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-black border border-gray-800 shadow-inner">
+                  <Sparkles size={22} />
+                </div>
                 <div>
-                  <div className="chatbot-title">PathToPro AI Assistant</div>
-                  <div className="chatbot-subtitle">
-                    {isTyping ? "Thinking..." : "Your personal learning guide"}
-                  </div>
+                  <h2 className="text-lg font-bold text-white tracking-tight">AI Assistant</h2>
+                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">
+                    {isTyping ? "Generating Response..." : "PathToPro Intelligence"}
+                  </p>
                 </div>
               </div>
-              <button className="chatbot-close" onClick={() => setOpen(false)} aria-label="Close">
-                ✕
+              <button
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                <X size={18} />
               </button>
             </div>
 
             {/* Body */}
-            <div className="chatbot-body" ref={scrollRef}>
-              <div className="chatbot-context">
-                💡 Ask me anything about your courses, lessons, or progress
+            <div className="chatbot-body flex-1 p-8 overflow-y-auto flex flex-col gap-6" ref={scrollRef}>
+
+              {/* Context/Tip */}
+              <div className="bg-[#111] border border-[#1f1f1f] p-4 rounded-xl text-xs text-gray-400 flex items-start gap-3">
+                <span className="text-base">💡</span>
+                <p>You can ask about lesson summaries, technical concepts, or your career roadmap. I&apos;m here to guide your professional journey.</p>
               </div>
 
-              {/* Starter (empty state) */}
+              {/* Starter State */}
               {messages.length === 0 && !isTyping && (
-                <div className="chatbot-starter">
-                  <h3>Ask me anything about this lesson</h3>
-                  <p style={{ fontSize: "13px", color: "#9ca3af", marginBottom: "14px" }}>
-                    I can explain concepts, summarize topics, or help you with your learning path.
-                  </p>
-                  <div className="chatbot-suggestions">
+                <div className="py-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <h3 className="text-xl font-black text-white mb-2">How can I help you today?</h3>
+                  <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">Select a quick topic or type your query below to start a conversation with our AI.</p>
+                  <div className="flex flex-wrap justify-center gap-3 max-w-lg mx-auto">
                     {QUICK_PROMPTS.map((q) => (
                       <button
                         key={q}
@@ -218,73 +246,103 @@ export default function LMSChatbot() {
                 </div>
               )}
 
-              {/* Messages */}
-              {messages.map((m) => (
-                <div key={m.id}>
-                  <div className={m.sender === "user" ? "user-message" : "assistant-message"}>
-                    {m.text}
-                  </div>
-                  {/* Action buttons for bot messages */}
-                  {m.sender === "bot" && m.actions && m.actions.length > 0 && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, alignSelf: "flex-start" }}>
-                      {m.actions.map((a) => (
-                        <button
-                          key={a.id}
-                          className="suggestion-pill"
-                          onClick={() => handleAction(a.action)}
-                          style={{ fontSize: "12px", color: "#a78bfa" }}
-                        >
-                          {a.label}
-                        </button>
-                      ))}
+              {/* Messages Container */}
+              <div className="flex flex-col gap-6">
+                {messages.map((m, idx) => (
+                  <div key={m.id} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
+                    <div className="flex items-center gap-2 mb-1 px-1">
+                      {m.sender === "bot" ? (
+                        <>
+                          <Bot size={12} className="text-gray-500" />
+                          <span className="text-[10px] font-bold uppercase tracking-tighter text-gray-500">PathToPro AI</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-[10px] font-bold uppercase tracking-tighter text-gray-500">You</span>
+                          <User size={12} className="text-gray-500" />
+                        </>
+                      )}
                     </div>
-                  )}
-                </div>
-              ))}
+
+                    <div className={m.sender === "user" ? "user-message" : "assistant-message"}>
+                      {m.sender === "bot" && m.isNew ? (
+                        <TypewriterText
+                          text={m.text}
+                          onComplete={() => {
+                            // Clear isNew flag once typing is finished
+                            setMessages(prev => prev.map(msg =>
+                              msg.id === m.id ? { ...msg, isNew: false } : msg
+                            ));
+                          }}
+                        />
+                      ) : (
+                        m.text
+                      )}
+
+                      {/* Retry Button for Errors */}
+                      {m.isError && !isTyping && (
+                        <div className="mt-4 pt-4 border-t border-[#1f1f1f]">
+                          <button
+                            onClick={() => {
+                              const lastUserMsg = [...messages].reverse().find(msg => msg.sender === "user");
+                              if (lastUserMsg) {
+                                sendToBackend(lastUserMsg.text, true);
+                              }
+                            }}
+                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white hover:text-gray-300 transition-colors"
+                          >
+                            <ArrowRight size={12} className="rotate-180" />
+                            Retry Request
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               {/* Typing indicator */}
               {isTyping && (
-                <div className="chatbot-typing">
-                  <span>PathToPro Assistant is thinking</span>
-                  <span className="dot" />
-                  <span className="dot" />
-                  <span className="dot" />
+                <div className="flex items-center gap-3 p-4 bg-[#111] border border-[#1f1f1f] rounded-xl w-fit animate-pulse">
+                  <div className="flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" />
+                  </div>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Bot is thinking...</span>
                 </div>
               )}
             </div>
 
-            {/* Input */}
-            <div className="chatbot-input-container">
-              <input
-                ref={inputRef}
-                className="chatbot-input"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
-                  }
-                }}
-                placeholder="Ask anything about your courses..."
-                disabled={isTyping}
-              />
-              <button
-                className="send-button"
-                onClick={handleSend}
-                disabled={!input.trim() || isTyping}
-                aria-label="Send message"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="12" y1="19" x2="12" y2="5" />
-                  <polyline points="5 12 12 5 19 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Footer */}
-            <div style={{ textAlign: "center", padding: "0 0 12px", fontSize: "11px", color: "#333" }}>
-              PathToPro Assistant · Course help only
+            {/* Input Area */}
+            <div className="p-6 border-t border-[#1f1f1f] bg-[#0b0b0b]">
+              <div className="relative flex items-center">
+                <input
+                  ref={inputRef}
+                  className="w-full bg-[#111] border border-[#1f1f1f] rounded-2xl py-4 pl-6 pr-14 text-sm text-white focus:outline-none focus:border-white transition-all placeholder:text-gray-600"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder="Describe what you want to learn..."
+                  disabled={isTyping}
+                />
+                <button
+                  className="absolute right-3 p-2.5 bg-white text-black rounded-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-30 disabled:hover:scale-100"
+                  onClick={handleSend}
+                  disabled={!input.trim() || isTyping}
+                >
+                  <Send size={18} />
+                </button>
+              </div>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <span className="w-1 h-1 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest">AI Engine Online · Verified Response System</span>
+              </div>
             </div>
           </div>
         </div>

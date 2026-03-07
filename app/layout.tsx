@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar/Navbar';
+import Footer from '@/components/Footer/Footer';
 import LMSChatbot from '@/components/LMSChatbot';
 
 import AuthInitializer from '@/components/AuthInitializer';
@@ -27,6 +28,7 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
             </main>
+            <Footer />
             <LMSChatbot />
           </div>
         </AuthInitializer>

@@ -43,7 +43,7 @@ export default function ProtectedActionModal({ open, onClose, message = "Please 
                         <Button
                             variant="outline"
                             className="flex-1"
-                            onClick={() => router.push("/auth/register")}
+                            onClick={() => router.push("/auth/login")}
                         >
                             Create Account
                         </Button>

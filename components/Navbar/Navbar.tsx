@@ -21,32 +21,44 @@ export default function Navbar() {
                 <div className="flex justify-between h-16 items-center">
                     <div className="flex items-center gap-3">
                         <Link href="/" className="flex items-center gap-2">
-                            <BookOpen className="h-8 w-8 text-blue-600" />
+                            <BookOpen className="h-8 w-8 text-black" />
                             <span className="font-semibold text-lg tracking-tight text-gray-900">PathToPro</span>
                         </Link>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-6">
+                        <Link href="/" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
+                            Home
+                        </Link>
+                        <Link href="/subjects" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
+                            Course
+                        </Link>
+                        <Link href="/connect" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
+                            Connect
+                        </Link>
+                        <Link href="/about" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
+                            About us
+                        </Link>
+
                         {isAuthenticated ? (
-                            <>
-                                <Link href="/subjects" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                                    Subjects
-                                </Link>
-                                <Link href="/profile" className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors">
-                                    {user?.name || 'Profile'}
-                                </Link>
-                                <Button variant="outline" size="sm" onClick={handleLogout}>
-                                    Logout
-                                </Button>
-                            </>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleLogout}
+                                className="ml-2 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-full px-5"
+                            >
+                                Logout
+                            </Button>
                         ) : (
-                            <>
+                            <div className="flex items-center gap-2 ml-2">
                                 <Link href="/auth/login">
-                                    <Button variant="ghost" size="sm">Login</Button>
+                                    <Button variant="ghost" size="sm" className="rounded-full">Login</Button>
                                 </Link>
-                                <Link href="/auth/register">
-                                    <Button size="sm">Register</Button>
+                                <Link href="/auth/login">
+                                    <button className="h-9 px-4 rounded-xl bg-black text-white hover:bg-gray-800 transition-colors font-medium text-sm">
+                                        Register
+                                    </button>
                                 </Link>
-                            </>
+                            </div>
                         )}
                     </div>
                 </div>
