@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BookOpen, LayoutDashboard, Map, MessageSquare, HelpCircle, Settings, LogOut, User, Sparkles, ArrowRight, Flame, Clock, Trophy, Zap, Globe, Target, ArrowLeft } from "lucide-react";
 import SubjectCard, { Subject } from "@/components/SubjectCard";
@@ -181,7 +181,7 @@ function GuestDashboardView({ subjects, UPCOMING_SUBJECTS, handleSubjectClick, U
   );
 }
 
-export default function SubjectsPage() {
+function SubjectsContent() {
   const router = useRouter();
   const { isAuthenticated, user, logout } = useAuthStore();
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -602,5 +602,20 @@ export default function SubjectsPage() {
         message="Please log in to access this premium course content."
       />
     </div>
+  );
+}
+
+export default function SubjectsPage() {
+  return (
+    <Suspense fallback={
+      <div className="auth-welcome">
+        <div className="auth-logo">Path<span>To</span>Pro</div>
+        <div className="auth-title">Welcome to PathToPro</div>
+        <div className="auth-subtitle">Initializing your dashboard...</div>
+        <div className="spinner" />
+      </div>
+    }>
+      <SubjectsContent />
+    </Suspense>
   );
 }
