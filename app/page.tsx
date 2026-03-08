@@ -12,8 +12,7 @@ export default function HomePage() {
   const { isAuthenticated, user } = useAuthStore();
 
   const handleProtectedNavigation = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
+    if (isAuthenticated) {
       router.push('/subjects');
     } else {
       router.push('/auth/login');

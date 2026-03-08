@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Play, Sparkles, MessageCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Play, Sparkles, MessageCircle, Globe, Target } from "lucide-react";
 import { convertToEmbed } from "@/utils/youtube";
 import LessonSkeleton from "@/components/LessonSkeleton";
 import MarkCompleteButton from "@/components/MarkCompleteButton";
@@ -42,9 +42,9 @@ export default function CoursePage() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // AI Summary state
-  const [summaryText, setSummaryText] = useState<string | null>(null);
-  const [summaryLoading, setSummaryLoading] = useState(false);
+  // AI Intelligence Hub state
+  const [aiContent, setAiContent] = useState<{ type: 'summary' | 'application' | 'interview', text: string } | null>(null);
+  const [aiLoadingType, setAiLoadingType] = useState<'summary' | 'application' | 'interview' | null>(null);
 
   // Flatten lessons for navigation and progress
   const flatLessons = sections.flatMap((s) => s.lessons);
@@ -90,7 +90,7 @@ export default function CoursePage() {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
     localStorage.setItem(`lastLesson-${subjectId}`, lesson.id);
-    setSummaryText(null);
+    setAiContent(null);
     setCurrentLesson(lesson);
   };
 
@@ -119,7 +119,7 @@ export default function CoursePage() {
       setCompletedLessons((prev) => [...prev, currentLesson.id]);
     }
     localStorage.setItem(`lastLesson-${subjectId}`, nextLesson.id);
-    setSummaryText(null);
+    setAiContent(null);
     setCurrentLesson(nextLesson);
     // Scroll to top of content area
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -140,6 +140,45 @@ export default function CoursePage() {
       setShowLoginModal(true);
     } else {
       window.dispatchEvent(new CustomEvent("open-chatbot"));
+    }
+  };
+
+  const fetchAIInsight = async (type: 'summary' | 'application' | 'interview') => {
+    if (!currentLesson) return;
+    setAiLoadingType(type);
+
+    const prompts = {
+      summary: `Give a short, bulleted summary of the core concepts in the lesson: "${currentLesson.title}". Focus on key takeaways and definitions.`,
+      application: `Explain the real-world application and industry use cases of the topic: "${currentLesson.title}". How is this used by professional developers in production environments? Provide specific examples.`,
+      interview: `What are the top 3-5 interview questions or technical focus points a recruiter would ask about: "${currentLesson.title}"? Provide concise, high-quality answers or talking points.`
+    };
+
+    try {
+      const { accessToken } = useAuthStore.getState();
+      const res = await fetch(ENDPOINTS.CHATBOT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
+        },
+        credentials: "include",
+        body: JSON.stringify({ message: prompts[type] }),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      const reply = data?.data?.reply || data?.reply;
+
+      if (reply && reply.toLowerCase().includes("service is temporarily unavailable")) {
+        setAiContent({ type, text: "The AI Intelligence Hub is currently deep in thought. Please try again in a moment." });
+      } else {
+        setAiContent({ type, text: reply || "Insight not available at the moment." });
+      }
+    } catch (err) {
+      setAiContent({ type, text: `Oops! Connection issue (${err instanceof Error ? err.message : 'Error'}). Please try again.` });
+    } finally {
+      setAiLoadingType(null);
     }
   };
 
@@ -362,21 +401,39 @@ export default function CoursePage() {
               </div>
               <button
                 onClick={handleOpenChat}
-                className="md:ml-auto w-full md:w-auto bg-black text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
+                className="md:ml-auto w-full md:w-auto bg-black text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-gray-800 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0 duration-300"
               >
                 <MessageCircle size={14} /> Open AI Assistant
               </button>
             </div>
 
-            {/* AI Summary Panel */}
-            {summaryText && (
-              <div className="mt-8 p-6 bg-white border border-gray-100 rounded-2xl shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles className="w-4 h-4 text-gray-400" />
-                  <span className="font-bold text-sm tracking-tight text-gray-900 uppercase tracking-widest text-[10px]">Lesson Summary</span>
+            {/* AI Intelligence Hub Panel */}
+            {aiContent && (
+              <div className="mt-8 p-8 bg-white border border-blue-100 rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both relative overflow-hidden group ring-1 ring-blue-50/50">
+                {/* Background glow effect */}
+                <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl group-hover:bg-blue-500/10 transition-colors duration-1000" />
+
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity duration-700">
+                  {aiContent.type === 'summary' && <Sparkles size={120} />}
+                  {aiContent.type === 'application' && <Globe size={120} />}
+                  {aiContent.type === 'interview' && <Target size={120} />}
                 </div>
-                <div className="prose prose-sm max-w-none text-gray-600 leading-relaxed font-medium">
-                  <ReactMarkdown>{summaryText}</ReactMarkdown>
+
+                <div className="flex items-center gap-2 mb-6 relative z-10">
+                  <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400">
+                    {aiContent.type === 'summary' && <Sparkles size={16} />}
+                    {aiContent.type === 'application' && <Globe size={16} />}
+                    {aiContent.type === 'interview' && <Target size={16} />}
+                  </div>
+                  <span className="font-black text-[10px] tracking-[0.2em] text-slate-400 uppercase">
+                    {aiContent.type === 'summary' && "Intelligence Hub • Lesson Summary"}
+                    {aiContent.type === 'application' && "Intelligence Hub • Real World Application"}
+                    {aiContent.type === 'interview' && "Intelligence Hub • Interview Focus"}
+                  </span>
+                </div>
+
+                <div className="prose prose-slate max-w-none text-slate-600 leading-relaxed font-medium relative z-10">
+                  <ReactMarkdown>{aiContent.text}</ReactMarkdown>
                 </div>
               </div>
             )}
@@ -392,42 +449,46 @@ export default function CoursePage() {
                   isAuthenticated={isLoggedIn}
                   onRequireAuth={() => setShowLoginModal(true)}
                 />
+                {/* AI Summary Button */}
                 <button
-                  className="flex items-center gap-2 bg-white border border-gray-200 text-black px-6 py-3 rounded-xl font-bold text-sm hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-50 shadow-sm"
-                  disabled={summaryLoading}
-                  onClick={async () => {
-                    setSummaryLoading(true);
-                    try {
-                      const { accessToken } = useAuthStore.getState();
-                      const res = await fetch(ENDPOINTS.CHATBOT, {
-                        method: "POST",
-                        headers: {
-                          "Content-Type": "application/json",
-                          ...(accessToken && { "Authorization": `Bearer ${accessToken}` })
-                        },
-                        credentials: "include",
-                        body: JSON.stringify({ message: `Give a short summary of: ${currentLesson.title}` }),
-                      });
-
-                      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-                      const data = await res.json();
-                      const reply = data?.data?.reply || data?.reply;
-
-                      // Check for the backend's fallback string
-                      if (reply && reply.toLowerCase().includes("service is temporarily unavailable")) {
-                        setSummaryText("The AI summary service is currently deep in thought. Please try again in a moment.");
-                      } else {
-                        setSummaryText(reply || "Summary not available at the moment.");
-                      }
-                    } catch (err) {
-                      setSummaryText(`Oops! Connection issue (${err instanceof Error ? err.message : 'Error'}). Please try again.`);
-                    } finally {
-                      setSummaryLoading(false);
-                    }
-                  }}
+                  className="flex items-center gap-2 bg-white border border-gray-200 text-black px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 hover:border-blue-200 hover:text-blue-600 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 disabled:opacity-50 shadow-sm group/btn"
+                  disabled={!!aiLoadingType}
+                  onClick={() => fetchAIInsight('summary')}
                 >
-                  {summaryLoading ? "Analyzing..." : <><Sparkles size={16} /> AI Summary</>}
+                  {aiLoadingType === 'summary' ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                      Analyzing...
+                    </div>
+                  ) : <><Sparkles size={14} className="group-hover/btn:rotate-12 transition-transform" /> Summary</>}
+                </button>
+
+                {/* Real World Button */}
+                <button
+                  className="flex items-center gap-2 bg-white border border-gray-200 text-black px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 hover:border-emerald-200 hover:text-emerald-600 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 disabled:opacity-50 shadow-sm group/btn"
+                  disabled={!!aiLoadingType}
+                  onClick={() => fetchAIInsight('application')}
+                >
+                  {aiLoadingType === 'application' ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                      Exploring...
+                    </div>
+                  ) : <><Globe size={14} className="group-hover/btn:animate-spin-slow transition-transform" /> Real World</>}
+                </button>
+
+                {/* Interview Focus Button */}
+                <button
+                  className="flex items-center gap-2 bg-white border border-gray-200 text-black px-6 py-3.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-50 hover:border-orange-200 hover:text-orange-600 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 disabled:opacity-50 shadow-sm group/btn"
+                  disabled={!!aiLoadingType}
+                  onClick={() => fetchAIInsight('interview')}
+                >
+                  {aiLoadingType === 'interview' ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-orange-600 border-t-transparent rounded-full animate-spin" />
+                      Focusing...
+                    </div>
+                  ) : <><Target size={14} className="group-hover/btn:scale-125 transition-transform" /> Interview Focus</>}
                 </button>
               </div>
 

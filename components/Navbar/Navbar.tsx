@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from '@/components/ui/button';
 import { BookOpen } from 'lucide-react';
+import Typewriter from '@/components/Typewriter';
 
 export default function Navbar() {
     const { isAuthenticated, user, logout } = useAuthStore();
@@ -19,17 +20,23 @@ export default function Navbar() {
         <nav className="w-full border-b bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
             <div className="container mx-auto px-6">
                 <div className="flex justify-between h-16 items-center">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-8">
                         <Link href="/" className="flex items-center gap-2">
-                            <BookOpen className="h-8 w-8 text-black" />
-                            <span className="font-semibold text-lg tracking-tight text-gray-900">PathToPro</span>
+                            <img
+                                src="https://static.thenounproject.com/png/2645458-200.png"
+                                alt="PathToPro Logo"
+                                className="h-10 w-10 object-contain"
+                            />
+                            <span className="font-bold text-xl tracking-tighter text-gray-900">
+                                <Typewriter text="PathToPro" speed={150} showCursor={false} />
+                            </span>
                         </Link>
                     </div>
                     <div className="flex items-center gap-6">
-                        <Link href="/" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
+                        <Link href="/" className="text-sm font-bold text-blue-600 bg-blue-50/80 px-4 py-2 rounded-full hover:bg-blue-100 transition-all">
                             Home
                         </Link>
-                        <Link href="/subjects" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
+                        <Link href="/subjects?tab=courses" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">
                             Course
                         </Link>
                         <Link href="/connect" className="text-sm font-medium text-gray-600 hover:text-black transition-colors">

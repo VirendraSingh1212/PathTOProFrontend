@@ -184,13 +184,40 @@ export default function LMSChatbot() {
   return (
     <>
       {/* ── Floating Chat Button (FAB) ── */}
-      <button
-        aria-label="Open PathToPro chat assistant"
-        onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-6 right-6 z-[1100] w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all border border-gray-800"
-      >
-        {open ? <X size={24} /> : <MessageSquare size={24} />}
-      </button>
+      <div className="fixed bottom-6 right-6 z-[1100]">
+        {/* Ambient Glow / Pulse Effect */}
+        {!open && (
+          <div className="absolute inset-0 bg-white/10 rounded-full animate-ping duration-[3000ms]" />
+        )}
+
+        <button
+          aria-label="Open PathToPro chat assistant"
+          onClick={() => setOpen((o) => !o)}
+          className={`relative w-16 h-16 flex items-center justify-center rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500 overflow-hidden group
+            ${open
+              ? 'bg-white text-black rotate-90 scale-90 shadow-none border border-gray-200'
+              : 'bg-gradient-to-br from-black to-zinc-800 text-white hover:scale-110 active:scale-95 shadow-[0_15px_35px_-5px_rgba(0,0,0,0.4)]'
+            }`}
+        >
+          {/* Internal Shine Effect */}
+          {!open && (
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+          )}
+
+          {open ? (
+            <X size={28} strokeWidth={2.5} />
+          ) : (
+            <div className="relative">
+              <MessageSquare size={28} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform duration-300" />
+              <Sparkles
+                size={14}
+                className="absolute -top-1 -right-1 text-gray-400 animate-pulse"
+                fill="currentColor"
+              />
+            </div>
+          )}
+        </button>
+      </div>
 
       {/* ── Chat Modal Overlay ── */}
       {open && (

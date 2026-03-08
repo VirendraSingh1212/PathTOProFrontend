@@ -7,6 +7,7 @@ interface TypewriterProps {
     speed?: number;
     delay?: number;
     className?: string;
+    showCursor?: boolean;
     onComplete?: () => void;
 }
 
@@ -15,6 +16,7 @@ export default function Typewriter({
     speed = 40,
     delay = 0,
     className = "",
+    showCursor = true,
     onComplete
 }: TypewriterProps) {
     const [displayedText, setDisplayedText] = useState("");
@@ -44,7 +46,7 @@ export default function Typewriter({
     return (
         <span className={className}>
             {displayedText}
-            {displayedText.length < text.length && (
+            {showCursor && displayedText.length < text.length && (
                 <span className="animate-pulse border-r-2 border-current ml-1" />
             )}
         </span>
