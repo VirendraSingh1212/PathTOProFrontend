@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { jwtDecode } from 'jwt-decode';
 
 export interface User {
     id: string;
@@ -60,6 +61,21 @@ export const useAuthStore = create<AuthState>()(
                 if (!token) {
                     set({ authLoading: false, isAuthenticated: false });
                     return;
+                }
+
+                // --- Optimistic Check ---
+                // If we have a token and user from persistence, we can show them immediately
+                // but still verify in background to ensure everything is valid.
+                try {
+                    const decoded: any = jwtDecode(token);
+                    const isExpired = decoded.exp * 1000 < Date.now();
+
+                    if (!isExpired && get().user) {
+                        // Optimistically set to NOT loading so UI can show dashboard
+                        set({ authLoading: false, isAuthenticated: true });
+                    }
+                } catch (e) {
+                    console.error("JWT decoding failed:", e);
                 }
 
                 try {
