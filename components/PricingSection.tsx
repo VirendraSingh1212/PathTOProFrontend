@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Check, Zap, Rocket, Crown, ArrowRight, ChevronDown, ShieldCheck, CreditCard, Lock, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Check, Zap, Rocket, Crown, ArrowRight, ChevronDown, ShieldCheck, CreditCard, Lock, Star, ArrowLeft } from "lucide-react";
 
 interface PlanProps {
     name: string;
@@ -91,14 +92,28 @@ const FAQItem = ({ question, answer }: { question: string; answer: string }) => 
 };
 
 export default function PricingSection() {
+    const router = useRouter();
     const handlePayment = (planName: string) => {
         alert(`Initializing Razorpay for ${planName}... (Wait for build!)`);
     };
 
     return (
-        <section className="py-24 px-6 max-w-7xl mx-auto overflow-hidden">
+        <section className="pt-12 pb-24 px-6 max-w-7xl mx-auto overflow-hidden">
+            {/* ── Navbar-like Header with Back Button ── */}
+            <div className="flex items-center justify-between mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+                <button
+                    onClick={() => router.push('/subjects')}
+                    className="flex items-center gap-2 text-zinc-400 hover:text-black transition-colors group"
+                >
+                    <div className="w-10 h-10 rounded-full border border-zinc-100 flex items-center justify-center group-hover:bg-zinc-50 transition-all">
+                        <ArrowLeft size={16} />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-widest">Back to Courses</span>
+                </button>
+            </div>
+
             {/* ── Trust Indicators ── */}
-            <div className="flex justify-center flex-wrap gap-8 mb-16 animate-in fade-in duration-1000">
+            <div className="flex justify-center flex-wrap gap-8 mb-12 animate-in fade-in duration-1000">
                 {[
                     { icon: <ShieldCheck size={16} />, text: "Secure Payment" },
                     { icon: <Star size={16} />, text: "4.9/5 Rating" },
@@ -111,7 +126,7 @@ export default function PricingSection() {
                 ))}
             </div>
 
-            <div className="text-center mb-20 animate-in fade-in slide-in-from-top-8 duration-700">
+            <div className="text-center mb-16 animate-in fade-in slide-in-from-top-8 duration-700">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-zinc-50 border border-zinc-100 text-black text-[10px] font-black uppercase tracking-[0.2em] mb-6">
                     <Crown size={12} className="fill-current" /> Membership
                 </div>
