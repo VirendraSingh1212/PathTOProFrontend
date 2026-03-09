@@ -26,7 +26,7 @@ export default function HomePage() {
       <section className="hero-section">
         <div className="hero-container">
 
-          {authLoading ? (
+          {(authLoading && !isAuthenticated) ? (
             <div className="animate-pulse" style={{ textAlign: "center", padding: "40px" }}>
               <div className="h-12 w-64 bg-slate-200 rounded-full mx-auto mb-6"></div>
               <div className="h-6 w-96 bg-slate-200 rounded-full mx-auto mb-8"></div>

@@ -41,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
             },
             hydrateAuth: async () => {
                 let token = get().accessToken;
+                let userFromStorage = get().user;
 
                 // Fallback: Check localStorage directly if store is not yet hydrated
                 if (!token && typeof window !== 'undefined') {
@@ -49,8 +50,9 @@ export const useAuthStore = create<AuthState>()(
                         if (stored) {
                             const parsed = JSON.parse(stored);
                             token = parsed?.state?.accessToken;
+                            userFromStorage = parsed?.state?.user;
                             if (token) {
-                                set({ accessToken: token, isAuthenticated: true });
+                                set({ accessToken: token, isAuthenticated: true, user: userFromStorage });
                             }
                         }
                     } catch (e) {
@@ -64,22 +66,30 @@ export const useAuthStore = create<AuthState>()(
                 }
 
                 // --- Optimistic Check ---
-                // If we have a token and user from persistence, we can show them immediately
-                // but still verify in background to ensure everything is valid.
+                // If we have token and user, immediately show the app.
                 try {
                     const decoded: any = jwtDecode(token);
                     const isExpired = decoded.exp * 1000 < Date.now();
 
-                    if (!isExpired && get().user) {
-                        // Optimistically set to NOT loading so UI can show dashboard
+                    if (!isExpired && userFromStorage) {
+                        // Optimistically set to NOT loading so UI can show dashboard/welcome instantly
                         set({ authLoading: false, isAuthenticated: true });
+                        // We still continue to verify in background, but we don't set authLoading to true here
+                    } else if (isExpired) {
+                        set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
+                        return;
                     }
                 } catch (e) {
-                    console.error("JWT decoding failed:", e);
+                    set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
+                    return;
                 }
 
                 try {
-                    set({ authLoading: true });
+                    // Only show loading if we haven't already optimistically rendered
+                    if (get().authLoading) {
+                        set({ authLoading: true });
+                    }
+
                     const rawUrl = process.env.NEXT_PUBLIC_API_URL || 'https://pathtopro-backend.onrender.com/api';
                     const cleanUrl = rawUrl.endsWith('/') ? rawUrl.slice(0, -1) : rawUrl;
                     const apiBase = cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
@@ -96,7 +106,6 @@ export const useAuthStore = create<AuthState>()(
                         const matchedUser = data.user || data;
                         set({ user: matchedUser, isAuthenticated: true, authLoading: false });
                     } else {
-                        // If token is invalid, clear state
                         set({ user: null, isAuthenticated: false, authLoading: false, accessToken: null });
                     }
                 } catch (err) {
