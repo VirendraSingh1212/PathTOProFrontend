@@ -225,26 +225,26 @@ export default function LMSChatbot() {
           >
 
             {/* Header */}
-            <div className="flex items-center justify-between p-7 border-b border-[#1f1f1f] bg-black/40 backdrop-blur-sm">
+            <div className="flex items-center justify-between p-7 border-b border-[#222] bg-black">
               <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-zinc-900 flex items-center justify-center text-white border border-zinc-800 shadow-2xl">
-                  <img src="/chatbot-avatar-dark.png" className="w-8 h-8 object-contain" alt="ProChat Logo" />
+                <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center border border-zinc-800 shadow-2xl overflow-hidden group">
+                  <img src="/chatbot-avatar-bw.png" className="w-10 h-10 object-contain filter brightness-200" alt="ProChat Logo" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-white tracking-tight uppercase">ProChat AI</h2>
+                  <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">ProChat AI</h2>
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                      {isTyping ? "Synthesizing..." : "Active Intelligence"}
+                    <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-black">
+                      {isTyping ? "PROCESSING" : "READY TO ASSIST"}
                     </span>
                   </div>
                 </div>
               </div>
               <button
-                className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-zinc-800 hover:text-white transition-all duration-300"
+                className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-500 hover:bg-white hover:text-black transition-all duration-500"
                 onClick={() => setOpen(false)}
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
 
