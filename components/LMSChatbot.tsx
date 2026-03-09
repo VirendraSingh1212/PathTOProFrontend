@@ -194,7 +194,7 @@ export default function LMSChatbot() {
             {/* Subtle Inner Glow */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
-            <span className="[writing-mode:vertical-lr] rotate-180 font-bold tracking-[0.2em] text-[10px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
+            <span className="[writing-mode:vertical-rl] [text-orientation:upright] font-black tracking-tighter text-[9px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
               ProChat AI
             </span>
 
