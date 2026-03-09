@@ -183,31 +183,31 @@ export default function LMSChatbot() {
 
   return (
     <>
-      {/* ── Side Chat Tab (Stark Black) ── */}
+      {/* ── Side Chat Tab (Minimalistic Black) ── */}
       <div className="fixed right-0 top-[45%] z-[1100] translate-y-[-50%] animate-in slide-in-from-right duration-700">
         {!open && (
           <button
             aria-label="Open ProChat AI assistant"
             onClick={() => setOpen(true)}
-            className="flex flex-col items-center gap-10 bg-[#000] text-white py-14 px-3 rounded-l-[44px] border border-zinc-900 shadow-[-30px_0_70px_rgba(0,0,0,0.8)] hover:pl-7 transition-all duration-700 group relative overflow-hidden"
+            className="flex flex-col items-center gap-6 bg-black text-white py-8 px-2.5 rounded-l-[32px] border-y border-l border-zinc-800 shadow-[-16px_0_40px_rgba(0,0,0,0.4)] hover:pl-4 transition-all duration-500 group relative overflow-hidden"
           >
-            {/* Pure White Accent */}
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-white shadow-[0_0_15px_#fff]" />
+            {/* Subtle Inner Glow */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-            <span className="[writing-mode:vertical-lr] rotate-180 font-black tracking-[0.5em] text-[10px] uppercase text-zinc-600 group-hover:text-white transition-all duration-500">
+            <span className="[writing-mode:vertical-lr] rotate-180 font-bold tracking-[0.3em] text-[11px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
               ProChat AI
             </span>
 
-            <div className="relative w-14 h-14 flex items-center justify-center transition-all duration-700 group-hover:scale-110">
+            <div className="relative w-11 h-11 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
               <img
-                src="/chatbot-avatar-bw.png"
+                src="/chatbot-avatar-dark.png"
                 alt="AI Assistant"
-                className="w-full h-full object-contain filter brightness-200"
+                className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"
               />
             </div>
 
-            {/* Pulsing Status */}
-            <div className="absolute bottom-8 right-1/2 translate-x-1/2 w-2 h-2 bg-white rounded-full shadow-[0_0_15px_#fff] animate-pulse" />
+            {/* Premium Connectivity Indicator */}
+            <div className="absolute bottom-4 right-1/2 translate-x-1/2 w-1 h-1 bg-white rounded-full opacity-40 group-hover:opacity-100 animate-pulse" />
           </button>
         )}
       </div>
@@ -225,36 +225,36 @@ export default function LMSChatbot() {
           >
 
             {/* Header */}
-            <div className="flex items-center justify-between p-7 border-b border-[#222] bg-black">
+            <div className="flex items-center justify-between p-7 border-b border-[#1f1f1f] bg-black/40 backdrop-blur-sm">
               <div className="flex items-center gap-5">
-                <div className="w-16 h-16 rounded-2xl bg-zinc-900 flex items-center justify-center border border-zinc-800 shadow-2xl overflow-hidden group">
-                  <img src="/chatbot-avatar-bw.png" className="w-10 h-10 object-contain filter brightness-200" alt="ProChat Logo" />
+                <div className="w-14 h-14 rounded-2xl bg-zinc-900 flex items-center justify-center text-white border border-zinc-800 shadow-2xl">
+                  <img src="/chatbot-avatar-dark.png" className="w-8 h-8 object-contain" alt="ProChat Logo" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">ProChat AI</h2>
+                  <h2 className="text-xl font-black text-white tracking-tight uppercase">ProChat AI</h2>
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                    <span className="text-[10px] text-zinc-500 uppercase tracking-widest font-black">
-                      {isTyping ? "PROCESSING" : "READY TO ASSIST"}
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                      {isTyping ? "Synthesizing..." : "Active Intelligence"}
                     </span>
                   </div>
                 </div>
               </div>
               <button
-                className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-500 hover:bg-white hover:text-black transition-all duration-500"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-zinc-800 hover:text-white transition-all duration-300"
                 onClick={() => setOpen(false)}
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
 
             {/* Body */}
-            <div className="chatbot-body flex-1 p-8 overflow-y-auto flex flex-col gap-6 bg-white" ref={scrollRef}>
+            <div className="chatbot-body flex-1 p-8 overflow-y-auto flex flex-col gap-6" ref={scrollRef}>
 
               {/* Context/Tip */}
-              <div className="bg-zinc-50 border border-zinc-200 p-5 rounded-2xl text-[11px] text-zinc-600 flex items-start gap-4 shadow-sm">
-                <span className="text-lg">⚡</span>
-                <p className="font-medium leading-relaxed">Ask anything about your path, lessons, or career. ProChat AI is optimized for professional precision.</p>
+              <div className="bg-[#111] border border-[#1f1f1f] p-4 rounded-xl text-xs text-gray-400 flex items-start gap-3">
+                <span className="text-base">💡</span>
+                <p>You can ask about lesson summaries, technical concepts, or your career roadmap. I&apos;m here to guide your professional journey.</p>
               </div>
 
               {/* Starter State */}
