@@ -187,7 +187,7 @@ export default function LMSChatbot() {
       <div className="fixed right-0 top-[45%] z-[1100] translate-y-[-50%] animate-in slide-in-from-right duration-700">
         {!open && (
           <button
-            aria-label="Open ProChat AI assistant"
+            aria-label="Open PathChat AI assistant"
             onClick={() => setOpen(true)}
             className="flex flex-col items-center gap-5 bg-black text-white py-6 px-2 rounded-l-[28px] border-y border-l border-zinc-800 shadow-[-12px_0_30px_rgba(0,0,0,0.4)] hover:pl-3.5 transition-all duration-500 group relative overflow-hidden"
           >
@@ -195,7 +195,7 @@ export default function LMSChatbot() {
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
             <span className="[writing-mode:vertical-rl] [text-orientation:upright] font-black tracking-tighter text-[9px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
-              ProChat AI
+              PathChat AI
             </span>
 
             <div className="relative w-9 h-9 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
@@ -228,10 +228,10 @@ export default function LMSChatbot() {
             <div className="flex items-center justify-between p-7 border-b border-[#1f1f1f] bg-black/40 backdrop-blur-sm">
               <div className="flex items-center gap-5">
                 <div className="w-14 h-14 rounded-2xl bg-zinc-900 flex items-center justify-center text-white border border-zinc-800 shadow-2xl">
-                  <img src="/chatbot-avatar-dark.png" className="w-8 h-8 object-contain" alt="ProChat Logo" />
+                  <img src="/chatbot-avatar-dark.png" className="w-8 h-8 object-contain" alt="PathChat Logo" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-white tracking-tight uppercase">ProChat AI</h2>
+                  <h2 className="text-xl font-black text-white tracking-tight uppercase">PathChat AI</h2>
                   <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                     <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
