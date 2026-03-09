@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { BookOpen, LayoutDashboard, Map, MessageSquare, HelpCircle, Settings, LogOut, User, Sparkles, ArrowRight, Flame, Clock, Trophy, Zap, Globe, Target, ArrowLeft } from "lucide-react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { BookOpen, LayoutDashboard, Map, MessageSquare, HelpCircle, Settings, LogOut, User, Sparkles, ArrowRight, Flame, Clock, Trophy, Zap, Globe, Target, ArrowLeft, Crown } from "lucide-react";
 import SubjectCard, { Subject } from "@/components/SubjectCard";
 import DashboardView from "@/components/DashboardView";
 import Typewriter from "@/components/Typewriter";
@@ -183,7 +183,8 @@ function GuestDashboardView({ subjects, UPCOMING_SUBJECTS, handleSubjectClick, U
 
 function SubjectsContent() {
   const router = useRouter();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const pathname = usePathname();
+  const { isAuthenticated, user, authLoading, logout } = useAuthStore();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -257,12 +258,12 @@ function SubjectsContent() {
   };
 
   // ─── Branded Auth Loading Screen ─────────────────────────────────────
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="auth-welcome">
         <div className="auth-logo">Path<span>To</span>Pro</div>
         <div className="auth-title">Welcome to PathToPro</div>
-        <div className="auth-subtitle">{LOADING_MESSAGES[loadingMsgIndex]}</div>
+        <div className="auth-subtitle">{loading ? LOADING_MESSAGES[loadingMsgIndex] : "Verifying session..."}</div>
         <div className="spinner" />
       </div>
     );
@@ -387,6 +388,16 @@ function SubjectsContent() {
             <div className="flex items-center gap-3">
               <HelpCircle size={18} strokeWidth={2} />
               Support
+            </div>
+          </button>
+
+          <button
+            className={`sidebar-item group ${pathname === '/pricing' ? 'active' : ''}`}
+            onClick={() => router.push('/pricing')}
+          >
+            <div className={`flex items-center gap-3 transition-transform duration-300 group-hover:translate-x-1`}>
+              <Crown size={18} strokeWidth={2} className="text-yellow-500" />
+              Upgrade to Pro
             </div>
           </button>
 

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, authLoading } = useAuthStore();
 
   const handleProtectedNavigation = () => {
     if (isAuthenticated) {
@@ -26,7 +26,16 @@ export default function HomePage() {
       <section className="hero-section">
         <div className="hero-container">
 
-          {!isAuthenticated ? (
+          {authLoading ? (
+            <div className="animate-pulse" style={{ textAlign: "center", padding: "40px" }}>
+              <div className="h-12 w-64 bg-slate-200 rounded-full mx-auto mb-6"></div>
+              <div className="h-6 w-96 bg-slate-200 rounded-full mx-auto mb-8"></div>
+              <div className="flex justify-center gap-4">
+                <div className="h-14 w-40 bg-slate-200 rounded-[28px]"></div>
+                <div className="h-14 w-40 bg-slate-200 rounded-[28px]"></div>
+              </div>
+            </div>
+          ) : !isAuthenticated ? (
             <>
               <h1 className="hero-title animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both">
                 Welcome to <span>PathToPro</span>

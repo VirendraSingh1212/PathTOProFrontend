@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Play, Sparkles, MessageCircle, Globe, Target } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Play, Sparkles, MessageCircle, Globe, Target, Lock } from "lucide-react";
 import { convertToEmbed } from "@/utils/youtube";
 import LessonSkeleton from "@/components/LessonSkeleton";
 import MarkCompleteButton from "@/components/MarkCompleteButton";
 import NextLessonButton from "@/components/NextLessonButton";
 import LoginModal from "@/components/LoginModal";
+import LockedContentOverlay from "@/components/LockedContentOverlay";
 import { useAuthStore } from "@/store/authStore";
 import { ENDPOINTS } from "@/utils/api";
 import ReactMarkdown from "react-markdown";
@@ -38,9 +39,11 @@ export default function CoursePage() {
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
 
   // Auth state from global store
-  const { isAuthenticated: isLoggedIn, authLoading } = useAuthStore();
+  const { isAuthenticated: isLoggedIn, authLoading, user } = useAuthStore();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+
+  const isLocked = currentLesson ? (!currentLesson.isPreview && !user?.isPro) : false;
 
   // AI Intelligence Hub state
   const [aiContent, setAiContent] = useState<{ type: 'summary' | 'application' | 'interview', text: string } | null>(null);
@@ -329,6 +332,9 @@ export default function CoursePage() {
                         <span style={{ flex: 1, fontSize: '13px', overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {lesson.title}
                         </span>
+                        {!lesson.isPreview && !user?.isPro && (
+                          <Lock size={12} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+                        )}
                       </button>
                     </li>
                   );
@@ -360,31 +366,41 @@ export default function CoursePage() {
             </div>
 
             {/* Video Card */}
-            <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both overflow-hidden rounded-2xl border border-gray-100 shadow-xl" style={{ animationDelay: '300ms', marginTop: '32px' }}>
-              {!currentLesson.videoUrl ? (
-                <div style={{
-                  width: "100%",
-                  aspectRatio: "16/9",
-                  background: "#111827",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 12,
-                }}>
-                  <Play className="w-12 h-12 text-gray-700" strokeWidth={1} />
-                  <p style={{ color: "#9ca3af", fontWeight: 700, fontSize: '14px' }}>Video Content Empty</p>
+            <div className="animate-in fade-in slide-in-from-bottom-6 duration-700 fill-mode-both overflow-hidden rounded-3xl border border-gray-100 shadow-xl relative" style={{ animationDelay: '300ms', marginTop: '32px' }}>
+              {isLocked ? (
+                <div className="relative aspect-video bg-slate-900">
+                  {/* Blur teaser background (could be an image) */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 opacity-50" />
+                  <LockedContentOverlay />
                 </div>
               ) : (
-                <div style={{ width: "100%", aspectRatio: "16/9", background: "#000" }}>
-                  <iframe
-                    style={{ width: "100%", height: "100%", border: 0 }}
-                    src={convertToEmbed(currentLesson.videoUrl)}
-                    title={currentLesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
+                <>
+                  {!currentLesson.videoUrl ? (
+                    <div style={{
+                      width: "100%",
+                      aspectRatio: "16/9",
+                      background: "#111827",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 12,
+                    }}>
+                      <Play className="w-12 h-12 text-gray-700" strokeWidth={1} />
+                      <p style={{ color: "#9ca3af", fontWeight: 700, fontSize: '14px' }}>Video Content Empty</p>
+                    </div>
+                  ) : (
+                    <div style={{ width: "100%", aspectRatio: "16/9", background: "#000" }}>
+                      <iframe
+                        style={{ width: "100%", height: "100%", border: 0 }}
+                        src={convertToEmbed(currentLesson.videoUrl)}
+                        title={currentLesson.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
