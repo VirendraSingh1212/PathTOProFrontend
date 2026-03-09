@@ -368,8 +368,7 @@ function SubjectsContent() {
           <button
             className="sidebar-item"
             onClick={() => {
-              const btn = document.querySelector('button[aria-label="Open PathToPro chat assistant"]') as HTMLButtonElement | null;
-              if (btn) btn.click();
+              window.dispatchEvent(new CustomEvent("open-chatbot"));
             }}
           >
             <div className="flex items-center gap-3">

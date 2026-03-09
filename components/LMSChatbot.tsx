@@ -183,22 +183,22 @@ export default function LMSChatbot() {
 
   return (
     <>
-      {/* ── Side Chat Tab (Minimalistic Black) ── */}
+      {/* ── Side Chat Tab (Minimalistic Black - Resized) ── */}
       <div className="fixed right-0 top-[45%] z-[1100] translate-y-[-50%] animate-in slide-in-from-right duration-700">
         {!open && (
           <button
             aria-label="Open ProChat AI assistant"
             onClick={() => setOpen(true)}
-            className="flex flex-col items-center gap-6 bg-black text-white py-8 px-2.5 rounded-l-[32px] border-y border-l border-zinc-800 shadow-[-16px_0_40px_rgba(0,0,0,0.4)] hover:pl-4 transition-all duration-500 group relative overflow-hidden"
+            className="flex flex-col items-center gap-5 bg-black text-white py-6 px-2 rounded-l-[28px] border-y border-l border-zinc-800 shadow-[-12px_0_30px_rgba(0,0,0,0.4)] hover:pl-3.5 transition-all duration-500 group relative overflow-hidden"
           >
             {/* Subtle Inner Glow */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
 
-            <span className="[writing-mode:vertical-lr] rotate-180 font-bold tracking-[0.3em] text-[11px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
+            <span className="[writing-mode:vertical-lr] rotate-180 font-bold tracking-[0.2em] text-[10px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
               ProChat AI
             </span>
 
-            <div className="relative w-11 h-11 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+            <div className="relative w-9 h-9 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
               <img
                 src="/chatbot-avatar-dark.png"
                 alt="AI Assistant"
@@ -207,7 +207,7 @@ export default function LMSChatbot() {
             </div>
 
             {/* Premium Connectivity Indicator */}
-            <div className="absolute bottom-4 right-1/2 translate-x-1/2 w-1 h-1 bg-white rounded-full opacity-40 group-hover:opacity-100 animate-pulse" />
+            <div className="absolute bottom-3 right-1/2 translate-x-1/2 w-1 h-1 bg-white rounded-full opacity-40 group-hover:opacity-100 animate-pulse" />
           </button>
         )}
       </div>
