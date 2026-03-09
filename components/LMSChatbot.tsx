@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { MessageSquare, X, Send, Sparkles, User, Bot, ArrowRight, Square } from "lucide-react";
+import { MessageSquare, X, Send, Sparkles, User, Bot, ArrowRight, Square, Trash2, RefreshCcw, Terminal, BookOpen, MessageCircle } from "lucide-react";
 import { useAuthStore } from "@/store/authStore";
 import { ENDPOINTS } from "@/utils/api";
 import ReactMarkdown from "react-markdown";
@@ -240,12 +240,28 @@ export default function LMSChatbot() {
                   </div>
                 </div>
               </div>
-              <button
-                className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-zinc-800 hover:text-white transition-all duration-300"
-                onClick={() => setOpen(false)}
-              >
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-3">
+                {messages.length > 0 && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Clear this conversation?")) {
+                        setMessages([]);
+                        sessionStorage.removeItem("lms_chat_messages");
+                      }
+                    }}
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-zinc-800 hover:text-red-400 transition-all duration-300"
+                    title="Clear history"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
+                <button
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-zinc-800 hover:text-white transition-all duration-300"
+                  onClick={() => setOpen(false)}
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* Body */}
@@ -358,12 +374,39 @@ export default function LMSChatbot() {
 
             {/* Input Area */}
             <div className="p-6 border-t border-[#1f1f1f] bg-[#0b0b0b]">
-              <div className="relative flex items-center">
-                <input
-                  ref={inputRef}
-                  className="w-full bg-[#111] border border-[#1f1f1f] rounded-2xl py-4 pl-6 pr-14 text-sm text-white focus:outline-none focus:border-white transition-all placeholder:text-gray-600"
+
+              {/* Persistent Action Bar */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-4 no-scrollbar mb-2 px-1">
+                {[
+                  { label: "Summarize Lesson", icon: <BookOpen size={12} />, prompt: "Give me a detailed bullet-point summary of this lesson." },
+                  { label: "Deep Explain", icon: <Sparkles size={12} />, prompt: "Explain the current topic in more depth with code examples." },
+                  { label: "Code Help", icon: <Terminal size={12} />, prompt: "I'm having trouble with the coding part. Can you help me debug or explain the syntax?" },
+                  { label: "Exam Prep", icon: <MessageCircle size={12} />, prompt: "Ask me 3 interview questions about this topic to test my knowledge." },
+                ].map((action, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      if (!isTyping) sendToBackend(action.prompt);
+                    }}
+                    className="flex items-center gap-2 whitespace-nowrap bg-[#111] border border-[#1f1f1f] hover:border-white/20 text-[10px] font-bold text-gray-400 hover:text-white px-4 py-2 rounded-full transition-all"
+                  >
+                    {action.icon}
+                    {action.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="relative flex items-end">
+                <textarea
+                  ref={inputRef as any}
+                  rows={1}
+                  className="w-full bg-[#111] border border-[#1f1f1f] rounded-2xl py-4 pl-6 pr-14 text-sm text-white focus:outline-none focus:border-white transition-all placeholder:text-gray-600 resize-none min-h-[56px] max-h-[200px]"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    e.target.style.height = 'inherit';
+                    e.target.style.height = `${e.target.scrollHeight}px`;
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -374,7 +417,7 @@ export default function LMSChatbot() {
                   disabled={isTyping}
                 />
 
-                <div className="absolute right-3 flex items-center gap-2">
+                <div className="absolute right-3 bottom-3 flex items-center gap-2">
                   {/* Stop Button - ONLY SHOWS WHEN TYPING */}
                   {isTyping && !isStopped && (
                     <button
