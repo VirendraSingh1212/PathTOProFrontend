@@ -183,40 +183,33 @@ export default function LMSChatbot() {
 
   return (
     <>
-      {/* ── Floating Chat Button (FAB) ── */}
-      <div className="fixed bottom-6 right-6 z-[1100]">
-        {/* Ambient Glow / Pulse Effect */}
+      {/* ── Side Chat Tab (Vertical) ── */}
+      <div className="fixed right-0 top-[45%] z-[1100] translate-y-[-50%] animate-in slide-in-from-right duration-700">
         {!open && (
-          <div className="absolute inset-0 bg-white/10 rounded-full animate-ping duration-[3000ms]" />
-        )}
+          <button
+            aria-label="Open ProChat AI assistant"
+            onClick={() => setOpen(true)}
+            className="flex flex-col items-center gap-4 bg-blue-600 text-white pt-6 pb-4 px-3 rounded-l-[24px] shadow-[-10px_0_30px_rgba(37,99,235,0.2)] hover:pl-5 transition-all duration-300 group relative border-y border-l border-blue-400/30"
+          >
+            {/* Ambient Pulse */}
+            <div className="absolute inset-0 bg-blue-500 rounded-l-[24px] animate-pulse opacity-20 -z-10 group-hover:scale-105 transition-transform" />
 
-        <button
-          aria-label="Open PathToPro chat assistant"
-          onClick={() => setOpen((o) => !o)}
-          className={`relative w-16 h-16 flex items-center justify-center rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-500 overflow-hidden group
-            ${open
-              ? 'bg-white text-black rotate-90 scale-90 shadow-none border border-gray-200'
-              : 'bg-gradient-to-br from-black to-zinc-800 text-white hover:scale-110 active:scale-95 shadow-[0_15px_35px_-5px_rgba(0,0,0,0.4)]'
-            }`}
-        >
-          {/* Internal Shine Effect */}
-          {!open && (
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-          )}
+            <span className="[writing-mode:vertical-lr] rotate-180 font-black tracking-[0.2em] text-[10px] uppercase opacity-90 group-hover:opacity-100 transition-opacity">
+              ProChat AI
+            </span>
 
-          {open ? (
-            <X size={28} strokeWidth={2.5} />
-          ) : (
-            <div className="relative">
-              <MessageSquare size={28} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform duration-300" />
-              <Sparkles
-                size={14}
-                className="absolute -top-1 -right-1 text-gray-400 animate-pulse"
-                fill="currentColor"
+            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white shadow-inner flex items-center justify-center p-0.5 group-hover:scale-110 transition-transform duration-300 border border-white/20">
+              <img
+                src="/chatbot-avatar.png"
+                alt="AI Assistant"
+                className="w-full h-full object-contain filter drop-shadow-sm"
               />
             </div>
-          )}
-        </button>
+
+            {/* Micro-Interaction: Indicator Dot */}
+            <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+          </button>
+        )}
       </div>
 
       {/* ── Chat Modal Overlay ── */}
@@ -238,9 +231,9 @@ export default function LMSChatbot() {
                   <Sparkles size={22} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">AI Assistant</h2>
+                  <h2 className="text-lg font-bold text-white tracking-tight">ProChat AI</h2>
                   <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">
-                    {isTyping ? "Generating Response..." : "PathToPro Intelligence"}
+                    {isTyping ? "Generating Response..." : "Intelligence Suite"}
                   </p>
                 </div>
               </div>
