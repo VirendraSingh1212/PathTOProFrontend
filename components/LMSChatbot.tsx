@@ -225,23 +225,26 @@ export default function LMSChatbot() {
           >
 
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-[#1f1f1f]">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-black border border-gray-800 shadow-inner">
-                  <Sparkles size={22} />
+            <div className="flex items-center justify-between p-7 border-b border-[#1f1f1f] bg-black/40 backdrop-blur-sm">
+              <div className="flex items-center gap-5">
+                <div className="w-14 h-14 rounded-2xl bg-zinc-900 flex items-center justify-center text-white border border-zinc-800 shadow-2xl">
+                  <img src="/chatbot-avatar-dark.png" className="w-8 h-8 object-contain" alt="ProChat Logo" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">ProChat AI</h2>
-                  <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">
-                    {isTyping ? "Generating Response..." : "Intelligence Suite"}
-                  </p>
+                  <h2 className="text-xl font-black text-white tracking-tight uppercase">ProChat AI</h2>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                    <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                      {isTyping ? "Synthesizing..." : "Active Intelligence"}
+                    </span>
+                  </div>
                 </div>
               </div>
               <button
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 hover:bg-[#1a1a1a] hover:text-white transition-colors"
+                className="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:bg-zinc-800 hover:text-white transition-all duration-300"
                 onClick={() => setOpen(false)}
               >
-                <X size={18} />
+                <X size={20} />
               </button>
             </div>
 
