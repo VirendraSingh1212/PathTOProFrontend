@@ -183,31 +183,31 @@ export default function LMSChatbot() {
 
   return (
     <>
-      {/* ── Side Chat Tab (Vertical) ── */}
+      {/* ── Side Chat Tab (Minimalistic Black) ── */}
       <div className="fixed right-0 top-[45%] z-[1100] translate-y-[-50%] animate-in slide-in-from-right duration-700">
         {!open && (
           <button
             aria-label="Open ProChat AI assistant"
             onClick={() => setOpen(true)}
-            className="flex flex-col items-center gap-4 bg-blue-600 text-white pt-6 pb-4 px-3 rounded-l-[24px] shadow-[-10px_0_30px_rgba(37,99,235,0.2)] hover:pl-5 transition-all duration-300 group relative border-y border-l border-blue-400/30"
+            className="flex flex-col items-center gap-6 bg-black text-white py-8 px-2.5 rounded-l-[32px] border-y border-l border-zinc-800 shadow-[-16px_0_40px_rgba(0,0,0,0.4)] hover:pl-4 transition-all duration-500 group relative overflow-hidden"
           >
-            {/* Ambient Pulse */}
-            <div className="absolute inset-0 bg-blue-500 rounded-l-[24px] animate-pulse opacity-20 -z-10 group-hover:scale-105 transition-transform" />
+            {/* Subtle Inner Glow */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
-            <span className="[writing-mode:vertical-lr] rotate-180 font-black tracking-[0.2em] text-[10px] uppercase opacity-90 group-hover:opacity-100 transition-opacity">
+            <span className="[writing-mode:vertical-lr] rotate-180 font-bold tracking-[0.3em] text-[11px] uppercase text-zinc-400 group-hover:text-white transition-colors duration-300">
               ProChat AI
             </span>
 
-            <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white shadow-inner flex items-center justify-center p-0.5 group-hover:scale-110 transition-transform duration-300 border border-white/20">
+            <div className="relative w-11 h-11 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
               <img
-                src="/chatbot-avatar.png"
+                src="/chatbot-avatar-dark.png"
                 alt="AI Assistant"
-                className="w-full h-full object-contain filter drop-shadow-sm"
+                className="w-full h-full object-contain opacity-80 group-hover:opacity-100 transition-opacity"
               />
             </div>
 
-            {/* Micro-Interaction: Indicator Dot */}
-            <div className="absolute top-2 left-2 w-1.5 h-1.5 bg-green-400 rounded-full shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+            {/* Premium Connectivity Indicator */}
+            <div className="absolute bottom-4 right-1/2 translate-x-1/2 w-1 h-1 bg-white rounded-full opacity-40 group-hover:opacity-100 animate-pulse" />
           </button>
         )}
       </div>
